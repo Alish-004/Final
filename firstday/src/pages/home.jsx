@@ -155,10 +155,10 @@ export default function HomePage() {
           Contact Us
         </Typography>
         <Typography variant="body2" sx={{ marginBottom: 1 }}>
-          Email: support@rentacar.com | Phone: +123 456 789
+          Email: support@rentacar.com | Phone: +977 9829697282
         </Typography>
         <Typography variant="body2" sx={{ marginBottom: 3 }}>
-          Address: 123 Travel Street, Kathmandu, Nepal
+          Address: 12 battisputali Street, Kathmandu, Nepal
         </Typography>
         <Typography variant="body2">
           © {new Date().getFullYear()} Rent A Car. All Rights Reserved.
@@ -167,3 +167,4 @@ export default function HomePage() {
     </div>
   );
 }
+  

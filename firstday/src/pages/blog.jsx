@@ -14,7 +14,7 @@ const blogPosts = [
   {
     id: 1,
     title: "Top 5 Road Trips to Take with a Rental Car",
-    image: "https://via.placeholder.com/400x200",
+    image: "https://whatthenepal.com/wp-content/uploads/2023/05/MUSEUM-22.jpg",
     description:
       "Discover the most scenic routes and hidden gems you can explore with our rental cars.",
     link: "/blog/road-trips",
@@ -22,7 +22,7 @@ const blogPosts = [
   {
     id: 2,
     title: "How to Choose the Right Car for Your Journey",
-    image: "https://via.placeholder.com/400x200",
+    image: "https://cdn.vectorstock.com/i/500p/55/61/why-choose-us-speech-bubble-vector-24175561.jpg",
     description:
       "Learn how to pick the perfect car for your trip based on comfort, budget, and more.",
     link: "/blog/choose-car",
@@ -30,7 +30,7 @@ const blogPosts = [
   {
     id: 3,
     title: "Essential Tips for First-Time Renters",
-    image: "https://via.placeholder.com/400x200",
+    image: "https://www.nepalpowerplaces.com/wp-content/uploads/2019/02/Swayambhunath_Stupa.jpg",
     description:
       "A beginner's guide to renting a car, including insurance, mileage, and terms.",
     link: "/blog/renting-tips",

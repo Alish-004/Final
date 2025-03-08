@@ -1,91 +1,157 @@
 import React from 'react';
-import { Container, Box, Typography } from '@mui/material';
 
-// AboutUsApp Component (without Navbar)
-const AboutUsApp = () => {
+const VehicleRentalSystem = () => {
   return (
-    <Box sx={{ padding: '20px 0', minHeight: 'calc(100vh)' }}>
+    <div style={styles.app}>
+      <Header />
       <Home />
       <AboutUs />
-    </Box>
+      <Footer />
+    </div>
   );
 };
 
-// Home Component
+const Header = () => {
+  return (
+    <header style={styles.header}>
+      <h1 style={styles.headerTitle}>Vehicle Rental System</h1>
+      <nav style={styles.nav}>
+        <a href="#home" style={styles.navLink}>Home</a>
+        <a href="#about" style={styles.navLink}>About Us</a>
+        <a href="#rent" style={styles.navLink}>Rent a Vehicle</a>
+        <a href="#contact" style={styles.navLink}>Contact Us</a>
+      </nav>
+    </header>
+  );
+};
+
 const Home = () => {
-  const containerStyle = {
-    padding: '20px',
-    margin: '0 auto',
-    backgroundColor: '#f4f4f4',
-    borderRadius: '8px',
-    textAlign: 'center',
-    maxWidth: '800px',
-    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-  };
-
   return (
-    <Container>
-      <Box style={containerStyle}>
-        <Typography variant="h4" style={{ color: '#004aad', marginBottom: '16px' }}>
-          Welcome to Vehicle Rental
-        </Typography>
-        <Typography variant="body1" style={{ color: '#555', lineHeight: '1.6' }}>
-          Your one-stop solution for renting cars, bikes, and trucks. Explore our wide range of vehicles to suit your needs. Enjoy seamless and affordable
-          rentals for every journey.
-        </Typography>
-      </Box>
-    </Container>
+    <section id="home" style={styles.section}>
+      <div style={styles.container}>
+        <h2 style={styles.sectionTitle}>Welcome to Vehicle Rental</h2>
+        <p style={styles.sectionText}>
+          Your one-stop solution for renting cars, bikes, and trucks. Explore our wide range of vehicles to suit your needs. Enjoy seamless and affordable rentals for every journey.
+        </p>
+        <button style={styles.button}>Rent Now</button>
+      </div>
+    </section>
   );
 };
 
-// About Us Component
 const AboutUs = () => {
-  const containerStyle = {
-    padding: '20px',
-    margin: '0 auto',
-    backgroundColor: '#f4f4f4',
-    borderRadius: '8px',
-    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-    textAlign: 'center',
-    maxWidth: '800px',
-  };
-
-  const titleStyle = {
-    marginBottom: '16px',
-    color: '#004aad',
-    fontWeight: 'bold',
-  };
-
-  const paragraphStyle = {
-    marginBottom: '12px',
-    color: '#555',
-    lineHeight: '1.6',
-  };
-
   return (
-    <Container>
-      <Box style={containerStyle}>
-        <Typography variant="h4" style={titleStyle}>
-          About Us
-        </Typography>
-        <Typography variant="body1" style={paragraphStyle}>
+    <section id="about" style={styles.section}>
+      <div style={styles.container}>
+        <h2 style={styles.sectionTitle}>About Us</h2>
+        <p style={styles.sectionText}>
           Welcome to our vehicle rental service! We are a premier vehicle rental company committed to providing you with top-notch vehicles for all your travel needs.
           Whether you need a car for a weekend getaway, a bike for a quick city commute, or a truck for moving, we've got you covered.
-        </Typography>
-        <Typography variant="body1" style={paragraphStyle}>
+        </p>
+        <p style={styles.sectionText}>
           Our mission is to offer affordable, reliable, and convenient rental solutions to individuals and businesses alike. With a wide range of vehicles and
           exceptional customer service, we strive to make every journey a memorable one.
-        </Typography>
-        <Typography variant="body1" style={paragraphStyle}>
+        </p>
+        <p style={styles.sectionText}>
           Why choose us? Our fleet is regularly serviced and updated to ensure safety and comfort. We also provide flexible rental options and competitive pricing
           to suit your budget.
-        </Typography>
-        <Typography variant="h6" style={{ marginTop: '20px', color: '#004aad' }}>
-          Let’s get you moving!
-        </Typography>
-      </Box>
-    </Container>
+        </p>
+        <h3 style={styles.subTitle}>Our History</h3>
+        <p style={styles.sectionText}>
+          Founded in 2010, Vehicle Rental System started as a small local business with just a handful of cars. Over the years, we have grown into a trusted name in the
+          vehicle rental industry, expanding our fleet and services to meet the growing demands of our customers.
+        </p>
+        <h3 style={styles.subTitle}>Our Team</h3>
+        <p style={styles.sectionText}>
+          Our team consists of experienced professionals who are passionate about providing the best rental experience. From customer service representatives to
+          maintenance staff, everyone at Vehicle Rental System is dedicated to ensuring your satisfaction.
+        </p>
+        <h3 style={styles.subTitle}>Our Values</h3>
+        <p style={styles.sectionText}>
+          At Vehicle Rental System, we value transparency, integrity, and customer satisfaction above all else. We believe in building long-term relationships with our
+          customers by offering reliable services and maintaining the highest standards of professionalism.
+        </p>
+      </div>
+    </section>
   );
 };
 
-export default AboutUsApp;
+const Footer = () => {
+  return (
+    <footer style={styles.footer}>
+      <p style={styles.footerText}>© 2023 Vehicle Rental System. All rights reserved.</p>
+    </footer>
+  );
+};
+
+const styles = {
+  app: {
+    fontFamily: 'Arial, sans-serif',
+    color: '#333',
+  },
+  header: {
+    backgroundColor: '#004aad',
+    padding: '20px',
+    color: '#fff',
+    textAlign: 'center',
+  },
+  headerTitle: {
+    margin: '0',
+    fontSize: '2rem',
+  },
+  nav: {
+    marginTop: '10px',
+  },
+  navLink: {
+    color: '#fff',
+    margin: '0 10px',
+    textDecoration: 'none',
+    fontSize: '1rem',
+  },
+  section: {
+    padding: '40px 20px',
+    textAlign: 'center',
+  },
+  container: {
+    maxWidth: '800px',
+    margin: '0 auto',
+  },
+  sectionTitle: {
+    color: '#004aad',
+    fontSize: '2rem',
+    marginBottom: '20px',
+  },
+  subTitle: {
+    color: '#004aad',
+    fontSize: '1.5rem',
+    marginTop: '30px',
+    marginBottom: '10px',
+  },
+  sectionText: {
+    color: '#555',
+    lineHeight: '1.6',
+    fontSize: '1rem',
+    marginBottom: '20px',
+  },
+  button: {
+    backgroundColor: '#004aad',
+    color: '#fff',
+    padding: '10px 20px',
+    border: 'none',
+    borderRadius: '5px',
+    fontSize: '1rem',
+    cursor: 'pointer',
+  },
+  footer: {
+    backgroundColor: '#004aad',
+    padding: '20px',
+    color: '#fff',
+    textAlign: 'center',
+  },
+  footerText: {
+    margin: '0',
+    fontSize: '0.9rem',
+  },
+};
+
+export default VehicleRentalSystem;
