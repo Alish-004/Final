@@ -22,9 +22,20 @@ model User{
   password  String
   contactNumber String
   address String
- 
+  role     String?  @default("user") // Optional with a default valu
 }
 
+model Vehicle{
+  id Int @id @default(autoincrement())
+  vehicleName String
+  type String
+  model String
+  company String
+  fuelType String
+  passengerSeat Int
+  imageUrl String
+  pricePerHour Int
+}
 
 
 

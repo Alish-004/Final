@@ -1,6 +1,5 @@
 import express from 'express';
 import  prisma, { login,registerUser } from '../middlewares/user.js';
-import auth from '../auth/auth.js';
 import { me } from '../middlewares/user.js';
 import cors from 'cors';
 
@@ -18,6 +17,7 @@ app.post('/login',login)
 
 
 app.get('/me',me)
+
 
 app.post('/signup',registerUser)
 export default app;
