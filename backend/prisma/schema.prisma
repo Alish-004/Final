@@ -35,6 +35,7 @@ model Vehicle{
   passengerSeat Int
   imageUrl String
   pricePerHour Int
+  description String
 }
 
 

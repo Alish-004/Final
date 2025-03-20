@@ -6,12 +6,10 @@ const router = express.Router();
 
 
 
-
 router.get("/get", async (req,res)=>{
   const vehicles = await prisma.vehicle.findMany();
    res.json(vehicles);
 })
-
 // POST endpoint to save a vehicle
 router.post("/add", upload.single("image"), async (req, res) => {
   try {
@@ -24,6 +22,7 @@ router.post("/add", upload.single("image"), async (req, res) => {
       fuelType,
       passengerSeat,
       pricePerHour,
+      description
     } = req.body;
 
     // Get the uploaded file path
@@ -54,6 +53,7 @@ router.post("/add", upload.single("image"), async (req, res) => {
         passengerSeat:parseInt(passengerSeat),
         imageUrl,
         pricePerHour:parseInt(pricePerHour),
+        description
       },
     });
 
@@ -64,5 +64,16 @@ router.post("/add", upload.single("image"), async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
+
+
+router.get("/get/:id",async function (req,res) {
+  const id = parseInt(req.params['id']);
+  const vehicle =await prisma.vehicle.findFirst({where:{
+    id:id
+  }})
+
+  res.send(vehicle)
+})
 
 export default router

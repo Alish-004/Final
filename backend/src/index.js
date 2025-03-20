@@ -3,7 +3,9 @@ import  "../src/routes/vehicleRoutes.js"
 import router from "../src/routes/vehicleRoutes.js";
 import express from "express"
 import path  from "path"
+import paymentRouter from "./routes/paymentRoute.js";
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+app.use('/api', paymentRouter)
 
 app.get('/',function(req,res){
     res.send("hi there")
