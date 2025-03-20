@@ -91,10 +91,10 @@ const LoginPage = () => {
       localStorage.setItem("token", token)
       location.href = "/"
     }else{
-      alert("Bhak madarchod..fheri han ")
+      alert("Invalid credentials")
     }
   }catch(error){
-      alert("Server ka gand margaya")
+      alert("Server error")
   }
   };
 

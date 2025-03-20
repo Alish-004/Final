@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Container, Grid, Box, Typography, Button, Card, CardContent, CardMedia } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import VehicleCard from "../components/VehicleCard";

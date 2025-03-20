@@ -12,6 +12,7 @@ import {
   Alert,
   CardMedia,
   IconButton,
+  TextareaAutosize,
 } from "@mui/material";
 import { Edit, Delete } from "@mui/icons-material";
 
@@ -29,6 +30,7 @@ function Vehicles() {
     passengerSeat: "",
     pricePerHour: "",
     image: null,
+    description: "",
   });
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
@@ -65,6 +67,7 @@ function Vehicles() {
       passengerSeat: "",
       pricePerHour: "",
       image: null,
+      description: "",
     });
   };
 
@@ -86,6 +89,7 @@ function Vehicles() {
       passengerSeat: "",
       pricePerHour: "",
       image: null,
+      description: "",
     });
   };
 
@@ -112,6 +116,7 @@ function Vehicles() {
     formData.append("fuelType", newVehicle.fuelType);
     formData.append("passengerSeat", newVehicle.passengerSeat);
     formData.append("pricePerHour", newVehicle.pricePerHour);
+    formData.append("description", newVehicle.description);
     formData.append("image", newVehicle.image);
 
     try {
@@ -152,6 +157,7 @@ function Vehicles() {
     formData.append("fuelType", newVehicle.fuelType);
     formData.append("passengerSeat", newVehicle.passengerSeat);
     formData.append("pricePerHour", newVehicle.pricePerHour);
+    formData.append("description", newVehicle.description);
     if (newVehicle.image) {
       formData.append("image", newVehicle.image);
     }
@@ -278,6 +284,9 @@ function Vehicles() {
                 <Typography variant="body2" color="textSecondary" gutterBottom>
                   <strong>Price:</strong> ${vehicle.pricePerHour}/hour
                 </Typography>
+                <Typography variant="body2" color="textSecondary" gutterBottom>
+                  <strong>Description:</strong> {vehicle.description}
+                </Typography>
 
                 {/* Edit and Delete Buttons */}
                 <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
@@ -382,6 +391,15 @@ function Vehicles() {
               margin="normal"
               required
             />
+            <TextareaAutosize
+              minRows={3}
+              placeholder="Description"
+              name="description"
+              value={newVehicle.description}
+              onChange={handleInputChange}
+              style={{ width: "100%", marginTop: "1rem", padding: "8px" }}
+              required
+            />
             <input
               type="file"
               name="image"
@@ -481,6 +499,15 @@ function Vehicles() {
               value={newVehicle.pricePerHour}
               onChange={handleInputChange}
               margin="normal"
+              required
+            />
+            <TextareaAutosize
+              minRows={3}
+              placeholder="Description"
+              name="description"
+              value={newVehicle.description}
+              onChange={handleInputChange}
+              style={{ width: "100%", marginTop: "1rem", padding: "8px" }}
               required
             />
             <input

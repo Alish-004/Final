@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Container,
   Card,
@@ -8,179 +8,322 @@ import {
   Box,
   Grid,
   Button,
+  Divider,
+  CircularProgress,
+  Snackbar,
+  Alert,
+  Paper,
+  Chip,
   TextField,
-  MenuItem,
 } from "@mui/material";
+import axios from "axios";
+import { useParams } from "react-router-dom";
 
 const CarDetailPage = () => {
-  // State for start and end locations
-  const [startLocation, setStartLocation] = useState("");
-  const [endLocation, setEndLocation] = useState("");
+  const [vehicle, setVehicle] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [startDateTime, setStartDateTime] = useState("");
+  const [endDateTime, setEndDateTime] = useState("");
+  const [totalPrice, setTotalPrice] = useState(0);
+  const [notification, setNotification] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+  const [hoursDifference, setHoursDifference] = useState(0);
+  const { carId } = useParams();
 
-  // Sample locations
-  const locations = [
-    "New York, NY",
-    "Los Angeles, CA",
-    "Chicago, IL",
-    "Houston, TX",
-    "Phoenix, AZ",
-    "Philadelphia, PA",
-    "San Antonio, TX",
-    "San Diego, CA",
-    "Dallas, TX",
-    "San Jose, CA",
-  ];
+  // Fetch vehicle data
+  useEffect(() => {
+    const fetchVehicleData = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get(`http://localhost:4000/vehicle/get/${carId}`);
+        setVehicle(response.data);
+        setLoading(false);
+      } catch (err) {
+        setError("Failed to load vehicle data. Please try again.");
+        setLoading(false);
+      }
+    };
+
+    fetchVehicleData();
+  }, [carId]);
+
+  // Calculate total price and hours difference
+  useEffect(() => {
+    if (vehicle && startDateTime && endDateTime) {
+      const startDateObj = new Date(startDateTime);
+      const endDateObj = new Date(endDateTime);
+      const timeDifference = endDateObj - startDateObj; // Difference in milliseconds
+      const hours = Math.ceil(timeDifference / (1000 * 60 * 60)); // Convert to hours
+      setHoursDifference(hours);
+
+      // Calculate price based on hours and hourly rate
+      const price = hours * vehicle.pricePerHour;
+      setTotalPrice(price);
+    }
+  }, [startDateTime, endDateTime, vehicle]);
+
+  // Handle booking
+  const handleBooking = async () => {
+    if (!startDateTime || !endDateTime) {
+      setNotification({
+        open: true,
+        message: "Please select both start and end date/time",
+        severity: "error",
+      });
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        "http://localhost:4000/api/payment",
+        { amount: totalPrice }, // Send the calculated amount in the request body
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      setNotification({
+        open: true,
+        message: "Booking successful! Redirecting to payment...",
+        severity: "success",
+      });
+
+      // Redirect to the payment URL received from the API
+      window.location.href = response.data.payment_url;
+    } catch (error) {
+      console.error("Error during payment:", error);
+      setNotification({
+        open: true,
+        message: "Failed to process payment. Please try again.",
+        severity: "error",
+      });
+    }
+  };
+
+  const handleCloseNotification = () => {
+    setNotification({
+      ...notification,
+      open: false,
+    });
+  };
+
+  if (loading) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
+        <CircularProgress />
+        <Typography variant="h6" sx={{ ml: 2 }}>
+          Loading vehicle details...
+        </Typography>
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
+        <Alert severity="error">{error}</Alert>
+      </Box>
+    );
+  }
 
   return (
-    <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
-      {/* Car Information Card */}
-      <Card sx={{ borderRadius: 2, boxShadow: 3 }}>
-        <CardMedia
-          component="img"
-          height="400"
-          image="https://images.pexels.com/photos/120049/pexels-photo-120049.jpeg?auto=compress&cs=tinysrgb&w=600"
-          alt="Luxury Car"
-          sx={{ borderTopLeftRadius: 8, borderTopRightRadius: 8 }}
-        />
-        <CardContent>
-          <Typography variant="h4" gutterBottom sx={{ fontWeight: "bold" }}>
-            Mercedes-Benz S-Class
-          </Typography>
-          <Typography variant="subtitle1" color="textSecondary" gutterBottom>
-            Luxury Sedan
-          </Typography>
-          <Typography variant="body1" paragraph>
-            Experience the epitome of luxury with the Mercedes-Benz S-Class. This
-            vehicle comes equipped with advanced technology, a smooth driving
-            experience, and unmatched comfort.
-          </Typography>
-          <Typography variant="h6" sx={{ fontWeight: "bold", color: "#1976d2" }}>
-            Price per day: Rs. 15,000
-          </Typography>
-        </CardContent>
-      </Card>
-
-      {/* Trip Details */}
-      <Box mt={4}>
-        <Typography variant="h5" gutterBottom sx={{ fontWeight: "bold" }}>
-          Trip Details
-        </Typography>
-        <Grid container spacing={3}>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              select
-              fullWidth
-              label="Start Location"
-              value={startLocation}
-              onChange={(e) => setStartLocation(e.target.value)}
-              variant="outlined"
-              sx={{ backgroundColor: "#f5f5f5", borderRadius: 1 }}
-            >
-              {locations.map((location) => (
-                <MenuItem key={location} value={location}>
-                  {location}
-                </MenuItem>
-              ))}
-            </TextField>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              select
-              fullWidth
-              label="End Location"
-              value={endLocation}
-              onChange={(e) => setEndLocation(e.target.value)}
-              variant="outlined"
-              sx={{ backgroundColor: "#f5f5f5", borderRadius: 1 }}
-            >
-              {locations.map((location) => (
-                <MenuItem key={location} value={location}>
-                  {location}
-                </MenuItem>
-              ))}
-            </TextField>
-          </Grid>
-        </Grid>
-      </Box>
-
-      {/* Payment Options */}
-      <Box mt={4}>
-        <Typography variant="h5" gutterBottom sx={{ fontWeight: "bold" }}>
-          Payment Options
-        </Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={12} sm={4}>
-            <Card
-              sx={{
-                textAlign: "center",
-                py: 2,
-                borderRadius: 2,
-                boxShadow: 2,
-                backgroundColor: "#f5f5f5",
-              }}
-            >
-              <CardContent>
-                <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-                  Credit Card
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <Card
-              sx={{
-                textAlign: "center",
-                py: 2,
-                borderRadius: 2,
-                boxShadow: 2,
-                backgroundColor: "#f5f5f5",
-              }}
-            >
-              <CardContent>
-                <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-                  Debit Card
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <Card
-              sx={{
-                textAlign: "center",
-                py: 2,
-                borderRadius: 2,
-                boxShadow: 2,
-                backgroundColor: "#f5f5f5",
-              }}
-            >
-              <CardContent>
-                <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-                  PayPal
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
-      </Box>
-
-      {/* Booking Button */}
-      <Box mt={4} textAlign="center">
-        <Button
-          variant="contained"
-          color="primary"
-          size="large"
-          sx={{
-            fontWeight: "bold",
-            fontSize: "1.1rem",
-            py: 1.5,
-            px: 4,
-            borderRadius: 2,
-            boxShadow: 2,
-          }}
-        >
-          Book Now
+    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+      {/* Navigation */}
+      <Box display="flex" alignItems="center" mb={3}>
+        <Button variant="outlined" sx={{ mr: 1 }} startIcon={<Typography>←</Typography>}>
+          Back to Search
         </Button>
       </Box>
+
+      {/* Main Content */}
+      <Grid container spacing={4}>
+        {/* Left Column - Vehicle Details */}
+        <Grid item xs={12} md={8}>
+          {/* Vehicle Image */}
+          <Card sx={{ borderRadius: 2, overflow: "hidden", mb: 3, boxShadow: 3 }}>
+            <CardMedia
+              component="img"
+              height="450"
+              image={`http://localhost:4000/uploads/${vehicle.imageUrl.split("\\")[1]}`}
+              alt={vehicle?.vehicleName}
+            />
+          </Card>
+
+          {/* Vehicle Information */}
+          <Card sx={{ borderRadius: 2, boxShadow: 3, mb: 3 }}>
+            <CardContent>
+              <Box display="flex" justifyContent="space-between" alignItems="center">
+                <Box>
+                  <Typography variant="h4" gutterBottom sx={{ fontWeight: "bold" }}>
+                    {vehicle?.vehicleName}
+                  </Typography>
+                  <Typography variant="subtitle1" color="textSecondary" gutterBottom>
+                    {vehicle?.type} • {vehicle?.model}
+                  </Typography>
+                </Box>
+              </Box>
+
+              <Divider sx={{ my: 2 }} />
+
+              <Typography variant="body1" paragraph>
+                {vehicle?.description}
+              </Typography>
+
+              <Divider sx={{ my: 2 }} />
+
+              {/* Vehicle Features */}
+              <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold" }}>
+                Vehicle Features
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={6} sm={4}>
+                  <Box>
+                    <Typography variant="body2" color="textSecondary">
+                      Company
+                    </Typography>
+                    <Typography variant="body1" fontWeight="500">
+                      {vehicle?.company}
+                    </Typography>
+                  </Box>
+                </Grid>
+                <Grid item xs={6} sm={4}>
+                  <Box>
+                    <Typography variant="body2" color="textSecondary">
+                      Fuel Type
+                    </Typography>
+                    <Typography variant="body1" fontWeight="500">
+                      {vehicle?.fuelType}
+                    </Typography>
+                  </Box>
+                </Grid>
+                <Grid item xs={6} sm={4}>
+                  <Box>
+                    <Typography variant="body2" color="textSecondary">
+                      Seating Capacity
+                    </Typography>
+                    <Typography variant="body1" fontWeight="500">
+                      {vehicle?.passengerSeat} Adults
+                    </Typography>
+                  </Box>
+                </Grid>
+              </Grid>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Right Column - Booking Details */}
+        <Grid item xs={12} md={4}>
+          <Paper sx={{ borderRadius: 2, p: 3, position: "sticky", top: 20, boxShadow: 3 }}>
+            <Typography variant="h5" gutterBottom sx={{ fontWeight: "bold" }}>
+              Booking Details
+            </Typography>
+
+            <Box mb={3}>
+              <Chip label="Available" color="success" sx={{ mb: 2 }} />
+              <Typography variant="h4" sx={{ fontWeight: "bold", color: "#1976d2" }}>
+                Rs {vehicle?.pricePerHour.toLocaleString()}
+              </Typography>
+              <Typography variant="subtitle2" color="textSecondary">
+                per hour
+              </Typography>
+            </Box>
+
+            <Divider sx={{ my: 2 }} />
+
+            {/* Date and Time Selection */}
+            <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: "bold" }}>
+              Trip Dates and Times
+            </Typography>
+            <Grid container spacing={2} sx={{ mb: 3 }}>
+              <Grid item xs={12}>
+                <TextField
+                  label="Start Date & Time"
+                  type="datetime-local"
+                  value={startDateTime}
+                  onChange={(e) => setStartDateTime(e.target.value)}
+                  fullWidth
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  label="End Date & Time"
+                  type="datetime-local"
+                  value={endDateTime}
+                  onChange={(e) => setEndDateTime(e.target.value)}
+                  fullWidth
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                />
+              </Grid>
+            </Grid>
+
+            {/* Hours Difference */}
+            <Box sx={{ backgroundColor: "#f5f5f5", p: 2, borderRadius: 2, mb: 3 }}>
+              <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: "bold" }}>
+                Rental Duration
+              </Typography>
+              <Typography variant="body1">{hoursDifference} hours</Typography>
+            </Box>
+
+            {/* Price Summary */}
+            <Box sx={{ backgroundColor: "#f5f5f5", p: 2, borderRadius: 2, mb: 3 }}>
+              <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: "bold" }}>
+                Price Summary
+              </Typography>
+              <Box display="flex" justifyContent="space-between" mb={1}>
+                <Typography variant="body2">
+                  Rs {vehicle?.pricePerHour.toLocaleString()} × {hoursDifference} hours
+                </Typography>
+                <Typography variant="body2">Rs {totalPrice.toLocaleString()}</Typography>
+              </Box>
+              <Divider sx={{ my: 1 }} />
+              <Box display="flex" justifyContent="space-between">
+                <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                  Total
+                </Typography>
+                <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                  Rs {totalPrice.toLocaleString()}
+                </Typography>
+              </Box>
+            </Box>
+
+            {/* Booking Button */}
+            <Button
+              variant="contained"
+              color="primary"
+              size="large"
+              fullWidth
+              onClick={handleBooking}
+              sx={{
+                fontWeight: "bold",
+                fontSize: "1.1rem",
+                py: 1.5,
+                borderRadius: 2,
+                textTransform: "none",
+              }}
+            >
+              Book Now
+            </Button>
+          </Paper>
+        </Grid>
+      </Grid>
+
+      {/* Notification */}
+      <Snackbar open={notification.open} autoHideDuration={6000} onClose={handleCloseNotification}>
+        <Alert onClose={handleCloseNotification} severity={notification.severity} sx={{ width: "100%" }}>
+          {notification.message}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };

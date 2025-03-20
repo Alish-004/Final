@@ -53,7 +53,7 @@ export default function VehicleCard({ vehicle }) {
         </CardContent>
         <Box sx={{ p: 2 }}>
           {true ? (
-            <Link to={"/cardetails"} style={{ textDecoration: "none" }}>
+            <Link to={"/cardetails/"+vehicle.id} style={{ textDecoration: "none" }}>
                <Button  variant="contained" color="primary" fullWidth>
               Details
               </Button> 

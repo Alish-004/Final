@@ -1,5 +1,6 @@
 import React from "react";
 import { Box, Grid, Card, CardMedia, CardContent, Typography, Button } from "@mui/material";
+import { Link } from "react-router-dom";
 
 export default function HomePage() {
   return (
@@ -64,7 +65,7 @@ export default function HomePage() {
             Choose from a range of premium and budget vehicles for your travel needs. Book now and
             enjoy hassle-free rides tailored to your journey.
           </Typography>
-          <Button variant="contained" color="primary" size="large">
+          <Button href="/vehicle" variant="contained" color="primary" size="large">
             Book Now
           </Button>
         </Box>
@@ -132,8 +133,9 @@ export default function HomePage() {
                   </Typography>
                 </CardContent>
                 <Box sx={{ padding: 2, textAlign: "center" }}>
-                  <Button variant="contained" color="primary" fullWidth>
-                    Book Now
+                  <Button href="/vehicle" variant="contained" color="primary" fullWidth>
+                  <Link to={"/vehicle"}>   Book Now</Link>
+                 
                   </Button>
                 </Box>
               </Card>
