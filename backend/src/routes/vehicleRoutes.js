@@ -22,7 +22,8 @@ router.post("/add", upload.single("image"), async (req, res) => {
       fuelType,
       passengerSeat,
       pricePerHour,
-      description
+      description,
+      available
     } = req.body;
 
     // Get the uploaded file path
@@ -53,7 +54,9 @@ router.post("/add", upload.single("image"), async (req, res) => {
         passengerSeat:parseInt(passengerSeat),
         imageUrl,
         pricePerHour:parseInt(pricePerHour),
-        description
+        description,
+        available:parseInt(available),
+        rented:0 
       },
     });
 

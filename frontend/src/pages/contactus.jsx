@@ -1,139 +1,83 @@
 import React from "react";
-import { Box, Container, Grid, Card, Typography, TextField, Button } from "@mui/material";
-import { styled } from "@mui/system";
-
-// Styled Components
-const StyledCard = styled(Card)(({ theme }) => ({
-  padding: theme.spacing(3),
-  boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
-  transition: "transform 0.3s, box-shadow 0.3s",
-  "&:hover": {
-    transform: "scale(1.05)",
-    boxShadow: "0px 4px 15px rgba(0, 0, 0, 0.2)",
-  },
-}));
-
-const StyledTextField = styled(TextField)(({ theme }) => ({
-  backgroundColor: "#fff",
-  borderRadius: "8px",
-  boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
-}));
-
-const StyledButton = styled(Button)(({ theme }) => ({
-  padding: theme.spacing(1.5),
-  fontSize: "16px",
-  fontWeight: "bold",
-  borderRadius: "8px",
-  textTransform: "none",
-  "&:hover": {
-    backgroundColor: "#1976d2",
-    boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)",
-  },
-}));
 
 export default function ContactUs() {
   return (
-    <Box sx={{ marginTop: 8, padding: 2, backgroundColor: "#f9f9f9", minHeight: "100vh" }}>
+    <div className="mt-32 py-8 bg-gray-50 min-h-screen">
       {/* Page Header */}
-      <Container>
-        <Typography
-          variant="h4"
-          gutterBottom
-          sx={{
-            textAlign: "center",
-            marginBottom: 2,
-            fontWeight: "bold",
-            color: "#333",
-          }}
-        >
+      <div className="container mx-auto px-4">
+        <h1 className="text-4xl font-bold text-center mb-4 text-gray-800">
           Contact Us
-        </Typography>
-        <Typography
-          variant="subtitle1"
-          sx={{
-            textAlign: "center",
-            marginBottom: 4,
-            color: "#555",
-          }}
-        >
+        </h1>
+        <p className="text-lg text-center mb-16 text-gray-600">
           Get in touch with us for inquiries, feedback, or assistance. We'd love to hear from you!
-        </Typography>
-      </Container>
+        </p>
+      </div>
 
       {/* Contact Content */}
-      <Container>
-        <Grid container spacing={4}>
+      <div className="container mx-auto px-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Contact Information */}
-          <Grid item xs={12} md={6}>
-            <StyledCard>
-              <Typography variant="h5" gutterBottom sx={{ fontWeight: "bold" }}>
-                Contact Information
-              </Typography>
-              <Typography variant="body1" sx={{ marginBottom: 2 }}>
+          <div className="col-span-1">
+            <div className="bg-white p-6 rounded-lg shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg">
+              <h2 className="text-2xl font-bold mb-4">Contact Information</h2>
+              <p className="mb-4">
                 <strong>Location:</strong> 18 battisputali, Kathmandu, Nepal
-              </Typography>
-              <Typography variant="body1" sx={{ marginBottom: 2 }}>
+              </p>
+              <p className="mb-4">
                 <strong>Phone:</strong> +977- 98137382883
-              </Typography>
-              <Typography variant="body1" sx={{ marginBottom: 2 }}>
+              </p>
+              <p className="mb-4">
                 <strong>Email:</strong> journeywheel@gmail.com
-              </Typography>
-            </StyledCard>
-          </Grid>
+              </p>
+            </div>
+          </div>
 
           {/* Contact Form */}
-          <Grid item xs={12} md={6}>
-            <StyledCard>
-              <Typography variant="h5" gutterBottom sx={{ fontWeight: "bold" }}>
-                Send Us a Message
-              </Typography>
-              <Typography variant="body2" sx={{ color: "text.secondary", marginBottom: 3 }}>
+          <div className="col-span-1">
+            <div className="bg-white p-6 rounded-lg shadow-md transition-all duration-300 hover:scale-105 hover:shadow-lg">
+              <h2 className="text-2xl font-bold mb-4">Send Us a Message</h2>
+              <p className="text-gray-500 mb-6">
                 Fill out the form below and we'll get back to you as soon as possible.
-              </Typography>
+              </p>
               <form>
-                <Grid container spacing={3}>
-                  <Grid item xs={12}>
-                    <StyledTextField
-                      fullWidth
-                      label="Your Name"
-                      variant="outlined"
+                <div className="grid gap-6">
+                  <div>
+                    <input
+                      className="w-full p-4 bg-white rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Your Name"
                       required
                     />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <StyledTextField
-                      fullWidth
-                      label="Your Email"
-                      variant="outlined"
+                  </div>
+                  <div>
+                    <input
+                      className="w-full p-4 bg-white rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Your Email"
                       type="email"
                       required
                     />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <StyledTextField
-                      fullWidth
-                      label="Your Message"
-                      variant="outlined"
-                      multiline
+                  </div>
+                  <div>
+                    <textarea
+                      className="w-full p-4 bg-white rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Your Message"
                       rows={4}
                       required
                     />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <StyledButton
-                      fullWidth
-                      variant="contained"
-                      color="primary"
+                  </div>
+                  <div>
+                    <button
+                      className="w-full py-3 px-6 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 hover:shadow-md transition-all duration-300"
+                      type="submit"
                     >
                       Send Message
-                    </StyledButton>
-                  </Grid>
-                </Grid>
+                    </button>
+                  </div>
+                </div>
               </form>
-            </StyledCard>
-          </Grid>
-        </Grid>
-      </Container>
-    </Box>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

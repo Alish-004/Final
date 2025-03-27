@@ -1,70 +1,38 @@
 import React from "react";
-import { Card, CardContent, CardMedia, Typography, Button, Grid, Box } from "@mui/material";
 import { Link } from "react-router-dom";
 
 export default function VehicleCard({ vehicle }) {
   return (
-    <Grid item xs={12} sm={6} md={4} lg={3}>
-      <Card
-        sx={{
-          maxWidth: 345,
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-          height: "100%",
-          boxShadow: 3,
-          transition: "transform 0.3s ease, box-shadow 0.3s ease",
-          "&:hover": {
-            transform: "scale(1.05)", // Scale up card on hover
-            boxShadow: 8, // Enhance shadow on hover
-          },
-        }}
-      >
-        <CardMedia
-          component="img"
-          sx={{
-            height: 200, // Fixed height for uniform image display
-            objectFit: "contain", // Ensures the entire image fits within the bounds
-            aspectRatio: "16/9", // Optional: maintains a consistent aspect ratio
-          }}
-          image={"http://localhost:4000/uploads/"+vehicle.imageUrl.split("\\")[1]}
+    <div className="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 p-4">
+      <div className="max-w-xs mx-auto flex flex-col justify-between h-full shadow-lg rounded-lg overflow-hidden transition-transform duration-300 ease-in-out hover:scale-105 hover:shadow-xl">
+        <img
+          src={"http://localhost:4000/uploads/" + vehicle.imageUrl.split("\\")[1]}
           alt={vehicle.name}
+          className="w-full h-48 object-contain aspect-video"
         />
-        <CardContent sx={{ flexGrow: 1 }}>
-          <Typography variant="h6" gutterBottom>
-            {vehicle.name}
-          </Typography>
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            paragraph
-            sx={{
-              display: "-webkit-box",
-              WebkitBoxOrient: "vertical",
-              WebkitLineClamp: 3, // Limit to 3 lines
-              overflow: "hidden",
-            }}
-          >
+        <div className="p-4 flex-grow">
+          <h3 className="text-lg font-semibold mb-2">{vehicle.name}</h3>
+          <p className="text-gray-600 mb-4 line-clamp-3">
             {vehicle.description}
-          </Typography>
-          <Typography variant="h6" sx={{ mt: 1 }}>
-           Rs {vehicle.pricePerHour} / Hour
-          </Typography>
-        </CardContent>
-        <Box sx={{ p: 2 }}>
+          </p>
+          <p className="text-lg font-semibold mt-2">
+            Rs {vehicle.pricePerHour} / Hour
+          </p>
+        </div>
+        <div className="p-4">
           {true ? (
-            <Link to={"/cardetails/"+vehicle.id} style={{ textDecoration: "none" }}>
-               <Button  variant="contained" color="primary" fullWidth>
-              Details
-              </Button> 
+            <Link to={"/cardetails/" + vehicle.id} className="no-underline">
+              <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded transition-colors duration-300">
+                Details
+              </button>
             </Link>
           ) : (
-            <Button variant="outlined" color="secondary" fullWidth disabled>
+            <button className="w-full border border-gray-400 text-gray-400 py-2 px-4 rounded cursor-not-allowed" disabled>
               Not Available
-            </Button>
+            </button>
           )}
-        </Box>
-      </Card>
-    </Grid>
+        </div>
+      </div>
+    </div>
   );
 }

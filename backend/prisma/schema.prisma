@@ -26,18 +26,16 @@ model User{
 }
 
 model Vehicle{
-  id Int @id @default(autoincrement())
-  vehicleName String
-  type String
-  model String
-  company String
-  fuelType String
+  id            Int    @id @default(autoincrement())
+  vehicleName   String
+  type          String
+  model         String
+  company       String
+  fuelType      String
   passengerSeat Int
-  imageUrl String
-  pricePerHour Int
-  description String
+  imageUrl      String
+  pricePerHour  Int
+  description   String
+  available     Int    // Added available as an integer
+  rented        Int    // Added rented as an integer
 }
-
-
-
-

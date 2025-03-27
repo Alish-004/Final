@@ -56,7 +56,9 @@ export  async function login (req,res){
          const token =   jwt.sign({email:email},Secret_KEY);
          res.send({
             token:token,
-            message:"true"
+            message:"true",
+            role:user.role.toUpperCase()
+
          });
         }else{
             res.send(
@@ -68,12 +70,24 @@ export  async function login (req,res){
         }
 }
 
-export function me(req,res){
-    console.log("/me")
-    const token = req.headers.token;
-    console.log(token)
-    const email = jwt.verify(Secret_KEY,token);
-    req.send(email);
+export async function me(req,res){
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    
+    if (!token) {
+      return res.status(401).json({ message: 'No token provided' });
+    }
+
+    // 2. Verify the token
+    const decoded = jwt.verify(token,Secret_KEY)
+    console.log(decoded)
+    const user =await prisma.user.findFirst({
+        where:{
+            email:decoded.email   
+        }
+    })
+    res.send(user)
+    
 }
 
 export default prisma;

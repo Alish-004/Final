@@ -1,21 +1,22 @@
-import { Outlet, Link } from "react-router-dom";
-import { FaUsers, FaCar, FaCog, FaTachometerAlt, FaHistory } from "react-icons/fa";
+import React from 'react';
+import { Outlet, Link, useLocation } from "react-router-dom";
+import { FaUsers, FaCar, FaCog, FaTachometerAlt, FaHistory, FaSignOutAlt } from "react-icons/fa";
 
 function Admin() {
     return (
-        <div style={{ display: "flex", height: "100vh", backgroundColor: "#f3f4f6" }}>
+        <div className="flex h-screen bg-gray-50">
             {/* Sidebar */}
             <Sidebar />
-
+            
             {/* Main Content */}
-            <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+            <div className="flex-1 flex flex-col overflow-hidden">
                 {/* Header */}
-                <header style={{ backgroundColor: "#ffffff", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)", padding: "1rem" }}>
-                    <h1 style={{ fontSize: "1.5rem", fontWeight: "600", color: "#1f2937" }}>Admin Dashboard</h1>
+                <header className="bg-white border-b border-gray-200 p-4 shadow-sm">
+                    <h1 className="text-2xl font-bold text-gray-800">Admin Dashboard</h1>
                 </header>
-
+                
                 {/* Page Content */}
-                <main style={{ flex: 1, overflowX: "hidden", overflowY: "auto", backgroundColor: "#e5e7eb", padding: "1rem" }}>
+                <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
                     <Outlet />
                 </main>
             </div>
@@ -24,58 +25,80 @@ function Admin() {
 }
 
 function Sidebar() {
+    const location = useLocation();
+
+    const menuItems = [
+        { 
+            path: "/admin/dashboard", 
+            icon: <FaTachometerAlt />, 
+            label: "Dashboard" 
+        },
+        { 
+            path: "/admin/customers", 
+            icon: <FaUsers />, 
+            label: "Customers" 
+        },
+        { 
+            path: "/admin/vehicles", 
+            icon: <FaCar />, 
+            label: "Vehicles" 
+        },
+        { 
+            path: "/admin/payment-history", 
+            icon: <FaHistory />, 
+            label: "Payment History" 
+        },
+        { 
+            path: "/admin/settings", 
+            icon: <FaCog />, 
+            label: "Settings" 
+        }
+    ];
+
+    function logout() {
+        localStorage.removeItem("token");
+        window.location.href = "/";
+    }
+
     return (
-        <div style={{ width: "16rem", backgroundColor: "#1f2937", color: "#ffffff", display: "flex", flexDirection: "column" }}>
-            <div style={{ padding: "1rem", fontSize: "1.5rem", fontWeight: "600" }}>
+        <div className="w-64 bg-gradient-to-b from-gray-800 to-gray-900 text-white flex flex-col shadow-lg">
+            <div className="p-6 text-2xl font-bold text-center border-b border-gray-700">
                 Car Rental Admin
             </div>
-            <nav style={{ flex: 1, marginTop: "1rem" }}>
-                <Link
-                    to="/admin/dashboard"
-                    style={{ display: "flex", alignItems: "center", padding: "0.75rem", color: "#ffffff", textDecoration: "none", transition: "background-color 0.3s" }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#374151"}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
-                >
-                    <FaTachometerAlt style={{ marginRight: "0.75rem" }} />
-                    Dashboard
-                </Link>
-                <Link
-                    to="/admin/customers"
-                    style={{ display: "flex", alignItems: "center", padding: "0.75rem", color: "#ffffff", textDecoration: "none", transition: "background-color 0.3s" }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#374151"}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
-                >
-                    <FaUsers style={{ marginRight: "0.75rem" }} />
-                    Customers
-                </Link>
-                <Link
-                    to="/admin/vehicles"
-                    style={{ display: "flex", alignItems: "center", padding: "0.75rem", color: "#ffffff", textDecoration: "none", transition: "background-color 0.3s" }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#374151"}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
-                >
-                    <FaCar style={{ marginRight: "0.75rem" }} />
-                    Vehicles
-                </Link>
-                <Link
-                    to="/admin/payment-history"
-                    style={{ display: "flex", alignItems: "center", padding: "0.75rem", color: "#ffffff", textDecoration: "none", transition: "background-color 0.3s" }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#374151"}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
-                >
-                    <FaHistory style={{ marginRight: "0.75rem" }} />
-                    Payment History
-                </Link>
-                <Link
-                    to="/admin/settings"
-                    style={{ display: "flex", alignItems: "center", padding: "0.75rem", color: "#ffffff", textDecoration: "none", transition: "background-color 0.3s" }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#374151"}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
-                >
-                    <FaCog style={{ marginRight: "0.75rem" }} />
-                    Settings
-                </Link>
+            
+            <nav className="flex-1 mt-4 space-y-1">
+                {menuItems.map((item) => (
+                    <Link
+                        key={item.path}
+                        to={item.path}
+                        className={`
+                            flex items-center p-3 px-4 
+                            transition-all duration-300 
+                            hover:bg-gray-700 
+                            ${location.pathname === item.path 
+                                ? 'bg-gray-700 border-r-4 border-blue-500' 
+                                : ''}
+                        `}
+                    >
+                        <span className="mr-3 text-lg">{item.icon}</span>
+                        {item.label}
+                    </Link>
+                ))}
             </nav>
+            
+            <div className="p-4 border-t border-gray-700">
+                <button 
+                    onClick={logout} 
+                    className="
+                        w-full flex items-center justify-center 
+                        bg-red-600 hover:bg-red-700 
+                        text-white py-2 rounded 
+                        transition-colors duration-300
+                    "
+                >
+                    <FaSignOutAlt className="mr-2" /> Logout
+                </button>
+            </div>
         </div>
     );
 }

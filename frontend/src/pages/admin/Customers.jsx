@@ -16,8 +16,8 @@ function Customers() {
                     </thead>
                     <tbody>
                         <tr style={{ borderBottom: "1px solid #e5e7eb" }}>
-                            <td style={{ padding: "0.75rem", fontSize: "0.875rem", color: "#374151" }}>John Doe</td>
-                            <td style={{ padding: "0.75rem", fontSize: "0.875rem", color: "#374151" }}>john@example.com</td>
+                            <td style={{ padding: "0.75rem", fontSize: "0.875rem", color: "#374151" }}>Niroj Blackmagic</td>
+                            <td style={{ padding: "0.75rem", fontSize: "0.875rem", color: "#374151" }}>niroj@blackmagic.com</td>
                             <td style={{ padding: "0.75rem", fontSize: "0.875rem", color: "#374151" }}>123-456-7890</td>
                             <td style={{ padding: "0.75rem", fontSize: "0.875rem", color: "#374151" }}>
                                 <button

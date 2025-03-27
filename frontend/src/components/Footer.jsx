@@ -1,21 +1,12 @@
 import React from "react";
-import { Box, Typography } from "@mui/material";
 
 function Footer() {
   return (
-    <Box
-      sx={{
-        backgroundColor: "#1f2937",
-        color: "#ffffff",
-        textAlign: "center",
-        padding: "1rem",
-        marginTop: "auto",
-      }}
-    >
-      <Typography variant="body2">
+    <footer className="bg-gray-800 text-white text-center p-4 mt-auto">
+      <p className="text-sm">
         © {new Date().getFullYear()} Vehicle Rental. All rights reserved.
-      </Typography>
-    </Box>
+      </p>
+    </footer>
   );
 }
 

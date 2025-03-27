@@ -154,4 +154,4 @@ const styles = {
   },
 };
 
-export default VehicleRentalSystem;
+export default AboutUs;

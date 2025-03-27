@@ -1,21 +1,4 @@
 import React, { useState, useEffect } from "react";
-import {
-  Container,
-  Card,
-  CardContent,
-  CardMedia,
-  Typography,
-  Box,
-  Grid,
-  Button,
-  Divider,
-  CircularProgress,
-  Snackbar,
-  Alert,
-  Paper,
-  Chip,
-  TextField,
-} from "@mui/material";
 import axios from "axios";
 import { useParams } from "react-router-dom";
 
@@ -80,7 +63,7 @@ const CarDetailPage = () => {
     try {
       const response = await axios.post(
         "http://localhost:4000/api/payment",
-        { amount: totalPrice }, // Send the calculated amount in the request body
+        { amount: totalPrice },
         {
           headers: {
             "Content-Type": "application/json",
@@ -115,216 +98,182 @@ const CarDetailPage = () => {
 
   if (loading) {
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
-        <CircularProgress />
-        <Typography variant="h6" sx={{ ml: 2 }}>
-          Loading vehicle details...
-        </Typography>
-      </Box>
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <p className="ml-4 text-xl">Loading vehicle details...</p>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
-        <Alert severity="error">{error}</Alert>
-      </Box>
+      <div className="flex justify-center items-center h-screen">
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+          {error}
+        </div>
+      </div>
     );
   }
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+    <div className="container mx-auto px-4 py-8 max-w-7xl">
       {/* Navigation */}
-      <Box display="flex" alignItems="center" mb={3}>
-        <Button variant="outlined" sx={{ mr: 1 }} startIcon={<Typography>←</Typography>}>
-          Back to Search
-        </Button>
-      </Box>
+      <div className="flex items-center mb-6">
+        <button className="flex items-center px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50">
+          <span className="mr-1">←</span> Back to Search
+        </button>
+      </div>
 
       {/* Main Content */}
-      <Grid container spacing={4}>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Left Column - Vehicle Details */}
-        <Grid item xs={12} md={8}>
+        <div className="md:col-span-2">
           {/* Vehicle Image */}
-          <Card sx={{ borderRadius: 2, overflow: "hidden", mb: 3, boxShadow: 3 }}>
-            <CardMedia
-              component="img"
-              height="450"
-              image={`http://localhost:4000/uploads/${vehicle.imageUrl.split("\\")[1]}`}
+          <div className="rounded-xl overflow-hidden mb-6 shadow-lg">
+            <img
+              src={`http://localhost:4000/uploads/${vehicle.imageUrl.split("\\")[1]}`}
               alt={vehicle?.vehicleName}
+              className="w-full h-[450px] object-cover"
             />
-          </Card>
+          </div>
 
           {/* Vehicle Information */}
-          <Card sx={{ borderRadius: 2, boxShadow: 3, mb: 3 }}>
-            <CardContent>
-              <Box display="flex" justifyContent="space-between" alignItems="center">
-                <Box>
-                  <Typography variant="h4" gutterBottom sx={{ fontWeight: "bold" }}>
-                    {vehicle?.vehicleName}
-                  </Typography>
-                  <Typography variant="subtitle1" color="textSecondary" gutterBottom>
+          <div className="bg-white rounded-xl shadow-lg mb-6">
+            <div className="p-6">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h1 className="text-3xl font-bold mb-2">{vehicle?.vehicleName}</h1>
+                  <p className="text-gray-600 mb-4">
                     {vehicle?.type} • {vehicle?.model}
-                  </Typography>
-                </Box>
-              </Box>
+                  </p>
+                </div>
+              </div>
 
-              <Divider sx={{ my: 2 }} />
+              <div className="border-t border-gray-200 my-4"></div>
 
-              <Typography variant="body1" paragraph>
-                {vehicle?.description}
-              </Typography>
+              <p className="text-gray-700 mb-4">{vehicle?.description}</p>
 
-              <Divider sx={{ my: 2 }} />
+              <div className="border-t border-gray-200 my-4"></div>
 
               {/* Vehicle Features */}
-              <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold" }}>
-                Vehicle Features
-              </Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={6} sm={4}>
-                  <Box>
-                    <Typography variant="body2" color="textSecondary">
-                      Company
-                    </Typography>
-                    <Typography variant="body1" fontWeight="500">
-                      {vehicle?.company}
-                    </Typography>
-                  </Box>
-                </Grid>
-                <Grid item xs={6} sm={4}>
-                  <Box>
-                    <Typography variant="body2" color="textSecondary">
-                      Fuel Type
-                    </Typography>
-                    <Typography variant="body1" fontWeight="500">
-                      {vehicle?.fuelType}
-                    </Typography>
-                  </Box>
-                </Grid>
-                <Grid item xs={6} sm={4}>
-                  <Box>
-                    <Typography variant="body2" color="textSecondary">
-                      Seating Capacity
-                    </Typography>
-                    <Typography variant="body1" fontWeight="500">
-                      {vehicle?.passengerSeat} Adults
-                    </Typography>
-                  </Box>
-                </Grid>
-              </Grid>
-            </CardContent>
-          </Card>
-        </Grid>
+              <h3 className="text-xl font-bold mb-4">Vehicle Features</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                <div>
+                  <p className="text-sm text-gray-500">Company</p>
+                  <p className="font-medium">{vehicle?.company}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Fuel Type</p>
+                  <p className="font-medium">{vehicle?.fuelType}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Seating Capacity</p>
+                  <p className="font-medium">{vehicle?.passengerSeat} Adults</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Right Column - Booking Details */}
-        <Grid item xs={12} md={4}>
-          <Paper sx={{ borderRadius: 2, p: 3, position: "sticky", top: 20, boxShadow: 3 }}>
-            <Typography variant="h5" gutterBottom sx={{ fontWeight: "bold" }}>
-              Booking Details
-            </Typography>
+        <div className="md:col-span-1">
+          <div className="bg-white rounded-xl p-6 shadow-lg sticky top-5">
+            <h2 className="text-2xl font-bold mb-4">Booking Details</h2>
 
-            <Box mb={3}>
-              <Chip label="Available" color="success" sx={{ mb: 2 }} />
-              <Typography variant="h4" sx={{ fontWeight: "bold", color: "#1976d2" }}>
+            <div className="mb-6">
+              {vehicle.available?
+              <span className="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full mb-2">
+                Available: {vehicle.available}
+              </span>: <span className="inline-block bg-green-100 text-red-800 text-xs px-2 py-1 rounded-full mb-2">
+                Not available
+              </span>
+}
+              <p className="text-3xl font-bold text-blue-600">
                 Rs {vehicle?.pricePerHour.toLocaleString()}
-              </Typography>
-              <Typography variant="subtitle2" color="textSecondary">
-                per hour
-              </Typography>
-            </Box>
+              </p>
+              <p className="text-sm text-gray-500">per hour</p>
+            </div>
 
-            <Divider sx={{ my: 2 }} />
+            <div className="border-t border-gray-200 my-4"></div>
 
             {/* Date and Time Selection */}
-            <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: "bold" }}>
-              Trip Dates and Times
-            </Typography>
-            <Grid container spacing={2} sx={{ mb: 3 }}>
-              <Grid item xs={12}>
-                <TextField
-                  label="Start Date & Time"
+            <h3 className="text-lg font-bold mb-4">Trip Dates and Times</h3>
+            <div className="space-y-4 mb-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Start Date & Time
+                </label>
+                <input
                   type="datetime-local"
                   value={startDateTime}
                   onChange={(e) => setStartDateTime(e.target.value)}
-                  fullWidth
-                  InputLabelProps={{
-                    shrink: true,
-                  }}
+                  className="w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                 />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  label="End Date & Time"
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  End Date & Time
+                </label>
+                <input
                   type="datetime-local"
                   value={endDateTime}
                   onChange={(e) => setEndDateTime(e.target.value)}
-                  fullWidth
-                  InputLabelProps={{
-                    shrink: true,
-                  }}
+                  className="w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                 />
-              </Grid>
-            </Grid>
+              </div>
+            </div>
 
             {/* Hours Difference */}
-            <Box sx={{ backgroundColor: "#f5f5f5", p: 2, borderRadius: 2, mb: 3 }}>
-              <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: "bold" }}>
-                Rental Duration
-              </Typography>
-              <Typography variant="body1">{hoursDifference} hours</Typography>
-            </Box>
+            <div className="bg-gray-50 p-4 rounded-lg mb-6">
+              <h3 className="text-lg font-bold mb-2">Rental Duration</h3>
+              <p>{hoursDifference} hours</p>
+            </div>
 
             {/* Price Summary */}
-            <Box sx={{ backgroundColor: "#f5f5f5", p: 2, borderRadius: 2, mb: 3 }}>
-              <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: "bold" }}>
-                Price Summary
-              </Typography>
-              <Box display="flex" justifyContent="space-between" mb={1}>
-                <Typography variant="body2">
+            <div className="bg-gray-50 p-4 rounded-lg mb-6">
+              <h3 className="text-lg font-bold mb-2">Price Summary</h3>
+              <div className="flex justify-between mb-2">
+                <p className="text-sm">
                   Rs {vehicle?.pricePerHour.toLocaleString()} × {hoursDifference} hours
-                </Typography>
-                <Typography variant="body2">Rs {totalPrice.toLocaleString()}</Typography>
-              </Box>
-              <Divider sx={{ my: 1 }} />
-              <Box display="flex" justifyContent="space-between">
-                <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-                  Total
-                </Typography>
-                <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-                  Rs {totalPrice.toLocaleString()}
-                </Typography>
-              </Box>
-            </Box>
+                </p>
+                <p className="text-sm">Rs {totalPrice.toLocaleString()}</p>
+              </div>
+              <div className="border-t border-gray-200 my-2"></div>
+              <div className="flex justify-between">
+                <p className="font-bold">Total</p>
+                <p className="font-bold">Rs {totalPrice.toLocaleString()}</p>
+              </div>
+            </div>
 
             {/* Booking Button */}
-            <Button
-              variant="contained"
-              color="primary"
-              size="large"
-              fullWidth
+            <button
               onClick={handleBooking}
-              sx={{
-                fontWeight: "bold",
-                fontSize: "1.1rem",
-                py: 1.5,
-                borderRadius: 2,
-                textTransform: "none",
-              }}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg text-lg transition duration-300"
             >
               Book Now
-            </Button>
-          </Paper>
-        </Grid>
-      </Grid>
+            </button>
+          </div>
+        </div>
+      </div>
 
       {/* Notification */}
-      <Snackbar open={notification.open} autoHideDuration={6000} onClose={handleCloseNotification}>
-        <Alert onClose={handleCloseNotification} severity={notification.severity} sx={{ width: "100%" }}>
-          {notification.message}
-        </Alert>
-      </Snackbar>
-    </Container>
+      {notification.open && (
+        <div className="fixed bottom-4 right-4 z-50">
+          <div
+            className={`${
+              notification.severity === "success"
+                ? "bg-green-100 border-green-400 text-green-700"
+                : "bg-red-100 border-red-400 text-red-700"
+            } px-4 py-3 rounded border relative`}
+          >
+            <span className="absolute top-0 right-0 px-2 py-1 cursor-pointer" onClick={handleCloseNotification}>
+              &times;
+            </span>
+            <p>{notification.message}</p>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 

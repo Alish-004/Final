@@ -1,14 +1,4 @@
 import React from "react";
-import {
-  Container,
-  Grid,
-  Card,
-  CardMedia,
-  CardContent,
-  Typography,
-  Button,
-  Box,
-} from "@mui/material";
 
 const blogPosts = [
   {
@@ -39,95 +29,45 @@ const blogPosts = [
 
 export default function BlogPage() {
   return (
-    <Box sx={{ marginTop: 8, padding: 2, backgroundColor: "#f9f9f9", minHeight: "100vh" }}>
+    <div className="mt-32 py-8 bg-gray-50 min-h-screen">
       {/* Page Header */}
-      <Container>
-        <Typography
-          variant="h4"
-          gutterBottom
-          sx={{
-            textAlign: "center",
-            marginBottom: 2,
-            fontWeight: "bold",
-            color: "#333",
-          }}
-        >
+      <div className="container mx-auto px-4">
+        <h1 className="text-4xl font-bold text-center mb-4 text-gray-800">
           Our Blog
-        </Typography>
-        <Typography
-          variant="subtitle1"
-          sx={{
-            textAlign: "center",
-            marginBottom: 4,
-            color: "#555",
-          }}
-        >
+        </h1>
+        <p className="text-lg text-center mb-12 text-gray-600">
           Stay updated with the latest tips, trends, and guides for your car rental experience.
-        </Typography>
-      </Container>
+        </p>
+      </div>
 
       {/* Blog Cards */}
-      <Container>
-        <Grid container spacing={4}>
+      <div className="container mx-auto px-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
           {blogPosts.map((post) => (
-            <Grid item xs={12} sm={6} md={4} key={post.id}>
-              <Card
-                sx={{
-                  height: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                  boxShadow: "0px 4px 10px rgba(0,0,0,0.1)",
-                  transition: "transform 0.3s, box-shadow 0.3s",
-                  "&:hover": {
-                    transform: "scale(1.05)",
-                    boxShadow: "0px 4px 15px rgba(0,0,0,0.2)",
-                  },
-                }}
-              >
-                <CardMedia
-                  component="img"
-                  height="140"
-                  image={post.image}
+            <div key={post.id} className="flex flex-col">
+              <div className="bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-lg h-full flex flex-col">
+                <img
+                  src={post.image}
                   alt={post.title}
-                  sx={{
-                    objectFit: "cover",
-                  }}
+                  className="w-full h-56 object-cover"
                 />
-                <CardContent sx={{ flexGrow: 1 }}>
-                  <Typography variant="h6" gutterBottom>
-                    {post.title}
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{
-                      display: "-webkit-box",
-                      WebkitBoxOrient: "vertical",
-                      WebkitLineClamp: 3,
-                      overflow: "hidden",
-                    }}
-                  >
+                <div className="p-6 flex-grow">
+                  <h3 className="text-xl font-semibold mb-3">{post.title}</h3>
+                  <p className="text-gray-600 line-clamp-3 mb-4">
                     {post.description}
-                  </Typography>
-                </CardContent>
-                <Button
-                  variant="contained"
-                  color="primary"
+                  </p>
+                </div>
+                <a
                   href={post.link}
-                  sx={{
-                    margin: 2,
-                    backgroundColor: "#1976d2",
-                    color: "#fff",
-                    textTransform: "none",
-                  }}
+                  className="mx-4 mb-4 inline-block px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-300 text-center"
                 >
                   Read More
-                </Button>
-              </Card>
-            </Grid>
+                </a>
+              </div>
+            </div>
           ))}
-        </Grid>
-      </Container>
-    </Box>
+        </div>
+      </div>
+    </div>
   );
 }
