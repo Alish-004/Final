@@ -86,6 +86,7 @@ export async function me(req,res){
             email:decoded.email   
         }
     })
+    user.role = user.role.toUpperCase()
     res.send(user)
     
 }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 
 const CarDetailPage = () => {
   const [vehicle, setVehicle] = useState(null);
@@ -14,8 +14,21 @@ const CarDetailPage = () => {
     message: "",
     severity: "success",
   });
-  const [hoursDifference, setHoursDifference] = useState(0);
+  const [timeDifference, setTimeDifference] = useState({
+    hours: 0,
+    minutes: 0,
+    totalHours: 0,
+    isValid: false
+  });
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const { carId } = useParams();
+  const navigate = useNavigate();
+
+  // Check if user is logged in
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    setIsLoggedIn(!!token);
+  }, []);
 
   // Fetch vehicle data
   useEffect(() => {
@@ -34,23 +47,136 @@ const CarDetailPage = () => {
     fetchVehicleData();
   }, [carId]);
 
-  // Calculate total price and hours difference
+  // Calculate total price and time difference
   useEffect(() => {
     if (vehicle && startDateTime && endDateTime) {
       const startDateObj = new Date(startDateTime);
       const endDateObj = new Date(endDateTime);
-      const timeDifference = endDateObj - startDateObj; // Difference in milliseconds
-      const hours = Math.ceil(timeDifference / (1000 * 60 * 60)); // Convert to hours
-      setHoursDifference(hours);
+      
+      const diffInMs = endDateObj - startDateObj;
+      const diffInHours = diffInMs / (1000 * 60 * 60);
+      const hours = Math.floor(diffInHours);
+      const minutes = Math.round((diffInHours - hours) * 60);
 
-      // Calculate price based on hours and hourly rate
-      const price = hours * vehicle.pricePerHour;
+      const isValid = diffInMs >= 60 * 60 * 1000;
+
+      setTimeDifference({
+        hours,
+        minutes,
+        totalHours: diffInHours,
+        isValid
+      });
+
+      const price = diffInHours * vehicle.pricePerHour;
       setTotalPrice(price);
+    } else {
+      setTimeDifference({
+        hours: 0,
+        minutes: 0,
+        totalHours: 0,
+        isValid: false
+      });
     }
   }, [startDateTime, endDateTime, vehicle]);
 
-  // Handle booking
+  const handleStartDateTimeChange = (e) => {
+    if (!isLoggedIn) {
+      setNotification({
+        open: true,
+        message: "Please login to select dates",
+        severity: "error",
+      });
+      return;
+    }
+
+    const selectedDateTime = e.target.value;
+    const now = new Date();
+    const selectedDate = new Date(selectedDateTime);
+
+    if (selectedDate < now) {
+      setNotification({
+        open: true,
+        message: "Start date/time cannot be in the past",
+        severity: "error",
+      });
+      return;
+    }
+
+    setStartDateTime(selectedDateTime);
+
+    if (endDateTime && new Date(endDateTime) < selectedDate) {
+      setEndDateTime("");
+    }
+  };
+
+  const handleEndDateTimeChange = (e) => {
+    if (!isLoggedIn) {
+      setNotification({
+        open: true,
+        message: "Please login to select dates",
+        severity: "error",
+      });
+      return;
+    }
+
+    const selectedDateTime = e.target.value;
+    const selectedDate = new Date(selectedDateTime);
+    const startDate = new Date(startDateTime);
+
+    if (!startDateTime) {
+      setNotification({
+        open: true,
+        message: "Please select start date/time first",
+        severity: "error",
+      });
+      return;
+    }
+
+    if (selectedDate <= startDate) {
+      setNotification({
+        open: true,
+        message: "End date/time must be after start date/time",
+        severity: "error",
+      });
+      return;
+    }
+
+    setEndDateTime(selectedDateTime);
+  };
+
+  const getMinDateTime = () => {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() + 1);
+    return now.toISOString().slice(0, 16);
+  };
+
+  const getMinEndDateTime = () => {
+    if (!startDateTime) return "";
+    const startDate = new Date(startDateTime);
+    startDate.setHours(startDate.getHours() + 1);
+    return startDate.toISOString().slice(0, 16);
+  };
+
   const handleBooking = async () => {
+    if (!isLoggedIn) {
+      setNotification({
+        open: true,
+        message: "Please login to book this vehicle",
+        severity: "error",
+      });
+      navigate("/login");
+      return;
+    }
+
+    if (vehicle.available <= 0) {
+      setNotification({
+        open: true,
+        message: "Sorry, this vehicle is not available for booking",
+        severity: "error",
+      });
+      return;
+    }
+
     if (!startDateTime || !endDateTime) {
       setNotification({
         open: true,
@@ -60,13 +186,30 @@ const CarDetailPage = () => {
       return;
     }
 
+    if (!timeDifference.isValid) {
+      setNotification({
+        open: true,
+        message: "Minimum booking duration is 60 minutes",
+        severity: "error",
+      });
+      return;
+    }
+
+    const vehicleData = {
+      vehicleId: carId,
+      startDateTime: startDateTime,
+      endDateTime: endDateTime,
+      amount: totalPrice
+    }
+
     try {
       const response = await axios.post(
         "http://localhost:4000/api/payment",
-        { amount: totalPrice },
+        vehicleData,
         {
           headers: {
             "Content-Type": "application/json",
+            Authorization: "Bearer " + localStorage.getItem("token")
           },
         }
       );
@@ -77,7 +220,7 @@ const CarDetailPage = () => {
         severity: "success",
       });
 
-      // Redirect to the payment URL received from the API
+      localStorage.setItem("rentalId", response.data.rentalId);
       window.location.href = response.data.payment_url;
     } catch (error) {
       console.error("Error during payment:", error);
@@ -94,6 +237,10 @@ const CarDetailPage = () => {
       ...notification,
       open: false,
     });
+  };
+
+  const handleLoginRedirect = () => {
+    navigate("/login");
   };
 
   if (loading) {
@@ -115,11 +262,17 @@ const CarDetailPage = () => {
     );
   }
 
+  const isVehicleAvailable = vehicle.available > 0;
+  const isBookingDisabled = !timeDifference.isValid || !isVehicleAvailable || !isLoggedIn;
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       {/* Navigation */}
       <div className="flex items-center mb-6">
-        <button className="flex items-center px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50">
+        <button 
+          onClick={() => navigate(-1)}
+          className="flex items-center px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+        >
           <span className="mr-1">←</span> Back to Search
         </button>
       </div>
@@ -146,6 +299,17 @@ const CarDetailPage = () => {
                   <p className="text-gray-600 mb-4">
                     {vehicle?.type} • {vehicle?.model}
                   </p>
+                </div>
+                <div>
+                  <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
+                    isVehicleAvailable 
+                      ? "bg-green-100 text-green-800" 
+                      : "bg-red-100 text-red-800"
+                  }`}>
+                    {isVehicleAvailable 
+                      ? `Available: ${vehicle.available}` 
+                      : "Not available"}
+                  </span>
                 </div>
               </div>
 
@@ -180,14 +344,33 @@ const CarDetailPage = () => {
           <div className="bg-white rounded-xl p-6 shadow-lg sticky top-5">
             <h2 className="text-2xl font-bold mb-4">Booking Details</h2>
 
+            {!isLoggedIn && (
+              <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <svg className="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm text-yellow-700">
+                      You need to <button onClick={handleLoginRedirect} className="font-medium underline text-yellow-700 hover:text-yellow-600">login</button> to book this vehicle
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="mb-6">
-              {vehicle.available?
-              <span className="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full mb-2">
-                Available: {vehicle.available}
-              </span>: <span className="inline-block bg-green-100 text-red-800 text-xs px-2 py-1 rounded-full mb-2">
-                Not available
+              <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium mb-2 ${
+                isVehicleAvailable 
+                  ? "bg-green-100 text-green-800" 
+                  : "bg-red-100 text-red-800"
+              }`}>
+                {isVehicleAvailable 
+                  ? `Available: ${vehicle.available}` 
+                  : "Not available"}
               </span>
-}
               <p className="text-3xl font-bold text-blue-600">
                 Rs {vehicle?.pricePerHour.toLocaleString()}
               </p>
@@ -206,8 +389,12 @@ const CarDetailPage = () => {
                 <input
                   type="datetime-local"
                   value={startDateTime}
-                  onChange={(e) => setStartDateTime(e.target.value)}
-                  className="w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  onChange={handleStartDateTimeChange}
+                  min={getMinDateTime()}
+                  disabled={!isVehicleAvailable || !isLoggedIn}
+                  className={`w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 ${
+                    !isVehicleAvailable || !isLoggedIn ? "bg-gray-100 cursor-not-allowed" : ""
+                  }`}
                 />
               </div>
               <div>
@@ -217,16 +404,34 @@ const CarDetailPage = () => {
                 <input
                   type="datetime-local"
                   value={endDateTime}
-                  onChange={(e) => setEndDateTime(e.target.value)}
-                  className="w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  onChange={handleEndDateTimeChange}
+                  min={getMinEndDateTime()}
+                  disabled={!startDateTime || !isVehicleAvailable || !isLoggedIn}
+                  className={`w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 ${
+                    !startDateTime || !isVehicleAvailable || !isLoggedIn ? "bg-gray-100 cursor-not-allowed" : ""
+                  }`}
                 />
               </div>
             </div>
 
-            {/* Hours Difference */}
+            {/* Time Difference */}
             <div className="bg-gray-50 p-4 rounded-lg mb-6">
               <h3 className="text-lg font-bold mb-2">Rental Duration</h3>
-              <p>{hoursDifference} hours</p>
+              {startDateTime && endDateTime ? (
+                <>
+                  <p>
+                    {timeDifference.hours > 0 && `${timeDifference.hours} hour${timeDifference.hours !== 1 ? 's' : ''}`}
+                    {timeDifference.minutes > 0 && ` ${timeDifference.minutes} minute${timeDifference.minutes !== 1 ? 's' : ''}`}
+                  </p>
+                  {!timeDifference.isValid && (
+                    <p className="text-red-500 text-sm mt-1">
+                      Minimum booking duration is 60 minutes
+                    </p>
+                  )}
+                </>
+              ) : (
+                <p>Select dates to see duration</p>
+              )}
             </div>
 
             {/* Price Summary */}
@@ -234,23 +439,28 @@ const CarDetailPage = () => {
               <h3 className="text-lg font-bold mb-2">Price Summary</h3>
               <div className="flex justify-between mb-2">
                 <p className="text-sm">
-                  Rs {vehicle?.pricePerHour.toLocaleString()} × {hoursDifference} hours
+                  Rs {vehicle?.pricePerHour.toLocaleString()} × {timeDifference.totalHours.toFixed(2)} hours
                 </p>
-                <p className="text-sm">Rs {totalPrice.toLocaleString()}</p>
+                <p className="text-sm">Rs {totalPrice.toFixed(2)}</p>
               </div>
               <div className="border-t border-gray-200 my-2"></div>
               <div className="flex justify-between">
                 <p className="font-bold">Total</p>
-                <p className="font-bold">Rs {totalPrice.toLocaleString()}</p>
+                <p className="font-bold">Rs {totalPrice.toFixed(2)}</p>
               </div>
             </div>
 
             {/* Booking Button */}
             <button
               onClick={handleBooking}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg text-lg transition duration-300"
+              disabled={isBookingDisabled}
+              className={`w-full text-white font-bold py-3 px-4 rounded-lg text-lg transition duration-300 ${
+                isBookingDisabled
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-blue-600 hover:bg-blue-700"
+              }`}
             >
-              Book Now
+              {!isLoggedIn ? "Login to Book" : isVehicleAvailable ? "Book Now" : "Not Available"}
             </button>
           </div>
         </div>

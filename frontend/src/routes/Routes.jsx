@@ -6,7 +6,6 @@ import Footer from "../components/Footer";
 import LoginPage from "../pages/Login";
 import HomePage from "../pages/home";
 import Signup from "../pages/Signup";
-import VehicleRental from "../pages/Vehicle";
 import AboutUs from "../pages/Aboutus";
 import ContactUs from "../pages/ContactUs";
 import BlogPage from "../pages/Blog";
@@ -19,6 +18,8 @@ import Vehicles from "../pages/admin/Vehicles";
 import PaymentHistory from "../pages/admin/PaymentHistory";
 import Settings from "../pages/admin/Settings";
 import { userSelector } from "../store/atoms";
+import VerifyPayment from "../pages/PaymentVerify";
+import VehicleRental from "../pages/vehicle";
 
 function AppRoutes() {
   const [userinfo] = useRecoilState(userSelector);
@@ -40,6 +41,7 @@ function AppRoutes() {
             <Route path="/blog" element={<BlogPage />} />
             <Route path="/profile" element={<UserProfile />} />
             <Route path="/cardetails/:carId" element={<CarDetailPage />} />
+            <Route path="/payment/verify" element={<VerifyPayment></VerifyPayment>}></Route>
             <Route path="*" element={<ErrorPage />} />
           </Routes>
           <Footer />
