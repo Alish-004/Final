@@ -5,6 +5,7 @@ import express from "express"
 import path  from "path"
 import paymentRouter from "./routes/paymentRoute.js";
 import rentalRouter from "./routes/rentalRoutes.js";
+import extensionRouter from "./routes/extensionRoutes.js"
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 app.use('/api', paymentRouter)
 
@@ -13,6 +14,9 @@ app.get('/',function(req,res){
 })
 
 app.use("/rental", rentalRouter)
+
+
+app.use("/extension", extensionRouter)
 
 app.use("/vehicle",router)
 app.listen(4000,function(){

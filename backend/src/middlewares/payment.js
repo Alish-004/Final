@@ -113,6 +113,4 @@ async function verifyPayment(req,res){
 }
 
 
-
-
 export {verifyPayment}

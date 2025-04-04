@@ -6,14 +6,16 @@ const prishmaClient = new PrismaClient();
 
 
 rentalRouter.post("/update",async function(req,res){
-    const {rentalId} = req.body;
+    let {rentalId,amount} = req.body;
+    amount = parseInt(amount)
    const response = await prishmaClient.rental.update({
         where:{
             id:parseInt(rentalId)
         },
         data:  {
-            status:"Completed",
-            paymentStatus:"Completed"
+            status:"active",
+            paymentStatus:"Completed",
+            amount:amount
         },
         include:{
             vehicle:true
@@ -48,7 +50,7 @@ rentalRouter.get("/rentals", auth, async (req, res) => {
         const rentals = await prishmaClient.rental.findMany({
             where: { 
                 userId: req.user.id,
-                status: "Completed" // or include this if you're filtering by status
+            // or include this if you're filtering by status
             },
             include: {
                 vehicle: {

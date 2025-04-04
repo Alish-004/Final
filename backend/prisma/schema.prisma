@@ -42,17 +42,31 @@ datasource db {
       rentals       Rental[]
     }
 
-    model Rental {
-      id         Int     @id @default(autoincrement())
-      user       User    @relation(fields: [userId], references: [id])
-      userId     Int
-      vehicle    Vehicle @relation(fields: [vehicleId], references: [id])
-      vehicleId  Int
-      startTime  DateTime
-      endTime    DateTime
-      status     String  @default("active") // active, completed
-      amount      Int
-      paymentStatus String? @default("unpaid") // unpaid, initiated, completed, failed
+   model Rental {
+  id         Int     @id @default(autoincrement())
+  user       User    @relation(fields: [userId], references: [id])
+  userId     Int
+  vehicle    Vehicle @relation(fields: [vehicleId], references: [id])
+  vehicleId  Int
+  startTime  DateTime
+  endTime    DateTime
+  status     String  @default("active") // active, completed, pending_extension
+  amount     Int
+  paymentStatus String? @default("unpaid") // unpaid, initiated, completed, failed
+  extensionRequests RentalExtensionRequest[]
+}
 
-    }
+
+
+     model RentalExtensionRequest {
+    id          Int      @id @default(autoincrement())
+    rental      Rental   @relation(fields: [rentalId], references: [id])
+    rentalId    Int
+    requestedEndTime DateTime
+    additionalAmount Int
+    paymentStatus String @default("pending") // pending, paid, failed
+    status      String   @default("pending") // pending, approved, rejected
+    startTime   DateTime 
+    endTime   DateTime @updatedAt
+  }
 
