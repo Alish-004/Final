@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet, Link, useLocation } from "react-router-dom";
-import { FaUsers, FaCar, FaCog, FaTachometerAlt, FaHistory, FaSignOutAlt } from "react-icons/fa";
+import { FaUsers, FaCar, FaCog, FaTachometerAlt, FaHistory, FaSignOutAlt, FaClock } from "react-icons/fa";
 
 function Admin() {
     return (
@@ -42,6 +42,11 @@ function Sidebar() {
             path: "/admin/vehicles", 
             icon: <FaCar />, 
             label: "Vehicles" 
+        },
+        { 
+            path: "/admin/extensions", 
+            icon: <FaClock />, 
+            label: "Extension Requests" 
         },
         { 
             path: "/admin/payment-history", 

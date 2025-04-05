@@ -20,6 +20,8 @@ import Settings from "../pages/admin/Settings";
 import { userSelector } from "../store/atoms";
 import VerifyPayment from "../pages/PaymentVerify";
 import VehicleRental from "../pages/vehicle";
+import ExtensionRequests from "../pages/admin/ExtensionRequests";
+import ExtensionPaymentVerify from "../pages/ExtensionPaymentVerify";
 
 function AppRoutes() {
   const [userinfo] = useRecoilState(userSelector);
@@ -41,6 +43,7 @@ function AppRoutes() {
             <Route path="/blog" element={<BlogPage />} />
             <Route path="/profile" element={<UserProfile />} />
             <Route path="/cardetails/:carId" element={<CarDetailPage />} />
+            <Route path="/extension/payment/verify" element={<ExtensionPaymentVerify></ExtensionPaymentVerify>}></Route>
             <Route path="/payment/verify" element={<VerifyPayment></VerifyPayment>}></Route>
             <Route path="*" element={<ErrorPage />} />
           </Routes>
@@ -54,6 +57,7 @@ function AppRoutes() {
               <Route path="customers" element={<Customers />} />
               <Route path="vehicles" element={<Vehicles />} />
               <Route path="payment-history" element={<PaymentHistory />} />
+              <Route path="extensions" element={<ExtensionRequests></ExtensionRequests>}></Route>
               <Route path="settings" element={<Settings />} />
             </Route>
             <Route path="*" element={<ErrorPage />} />

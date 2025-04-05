@@ -17,6 +17,7 @@ const auth = async (req, res, next) => {
     }
     
     // Verify token
+    console.log(token)
     const decoded =  jwt.verify(token, Secret_KEY);
     console.log("decoded:"+decoded.email)
     
@@ -46,7 +47,7 @@ const auth = async (req, res, next) => {
 };
 
 const admin = (req, res, next) => {
-  if (req.user && req.user.role === 'admin') {
+  if (req.user && req.user.role === 'ADMIN') {
     next();
   } else {
     return res.status(403).json({ success: false, message: 'Not authorized as admin' });

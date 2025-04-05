@@ -12,7 +12,7 @@ function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo Section */}
           <div className="flex items-center">
-            <h1 className="text-xl font-bold text-blue-800">Vehicle Rental</h1>
+            <h1 className="text-xl font-bold text-blue-800">JOURNEY WHEELS</h1>
           </div>
 
           {/* Navigation Links Section (Centered) */}

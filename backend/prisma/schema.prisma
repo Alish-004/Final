@@ -68,5 +68,7 @@ datasource db {
     status      String   @default("pending") // pending, approved, rejected
     startTime   DateTime 
     endTime   DateTime @updatedAt
+    createdAt   DateTime @default(now())
+
   }
 

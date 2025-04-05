@@ -22,7 +22,8 @@ function VerifyPayment() {
         }
 
         await axios.post("http://localhost:4000/rental/update", {
-          rentalId: rentalId
+          rentalId: rentalId,
+          amount:parseInt(localStorage.getItem("amount"))
         });
 
         window.location.href= "/profile"

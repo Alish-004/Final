@@ -16,7 +16,7 @@ app.get('/',function(req,res){
 app.use("/rental", rentalRouter)
 
 
-app.use("/extension", extensionRouter)
+app.use("/api/extension", extensionRouter)
 
 app.use("/vehicle",router)
 app.listen(4000,function(){

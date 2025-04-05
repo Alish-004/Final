@@ -58,7 +58,7 @@ const CarDetailPage = () => {
       const hours = Math.floor(diffInHours);
       const minutes = Math.round((diffInHours - hours) * 60);
 
-      const isValid = diffInMs >= 60 * 60 * 1000;
+      const isValid = diffInMs >= 60 * 60 * 1000; // At least 1 hour
 
       setTimeDifference({
         hours,
@@ -93,6 +93,7 @@ const CarDetailPage = () => {
     const now = new Date();
     const selectedDate = new Date(selectedDateTime);
 
+    // Check if selected time is in the past
     if (selectedDate < now) {
       setNotification({
         open: true,
@@ -104,7 +105,8 @@ const CarDetailPage = () => {
 
     setStartDateTime(selectedDateTime);
 
-    if (endDateTime && new Date(endDateTime) < selectedDate) {
+    // Reset end time if it's before the new start time
+    if (endDateTime && new Date(endDateTime) <= selectedDate) {
       setEndDateTime("");
     }
   };
@@ -132,10 +134,11 @@ const CarDetailPage = () => {
       return;
     }
 
-    if (selectedDate <= startDate) {
+    // Check if end time is at least 1 hour after start time
+    if ((selectedDate - startDate) < 60 * 60 * 1000) {
       setNotification({
         open: true,
-        message: "End date/time must be after start date/time",
+        message: "Minimum booking duration is 1 hour",
         severity: "error",
       });
       return;
@@ -144,12 +147,15 @@ const CarDetailPage = () => {
     setEndDateTime(selectedDateTime);
   };
 
+  // Helper function to format minimum datetime for input
   const getMinDateTime = () => {
     const now = new Date();
+    // Add 1 minute buffer to prevent selecting current minute that might become past
     now.setMinutes(now.getMinutes() + 1);
     return now.toISOString().slice(0, 16);
   };
 
+  // Helper function to format minimum end datetime (1 hour after start)
   const getMinEndDateTime = () => {
     if (!startDateTime) return "";
     const startDate = new Date(startDateTime);
@@ -221,6 +227,7 @@ const CarDetailPage = () => {
       });
 
       localStorage.setItem("rentalId", response.data.rentalId);
+      localStorage.setItem("amount", totalPrice)
       window.location.href = response.data.payment_url;
     } catch (error) {
       console.error("Error during payment:", error);
