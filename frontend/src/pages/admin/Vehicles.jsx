@@ -36,7 +36,7 @@ const VehicleCard = ({ vehicle, onEdit, onDelete }) => {
           <div className="flex items-center">
             <span className="font-medium w-24">Price:</span>
             <span className="flex-1 font-semibold text-blue-600">
-              ${vehicle.pricePerHour}/hour
+              Rs{vehicle.pricePerHour}/hour
             </span>
           </div>
           <div className="pt-2">
@@ -153,12 +153,12 @@ const VehicleForm = ({ vehicle, onInputChange, onFileChange, onSubmit, onCancel,
           <label className="block text-sm font-medium text-gray-700 mb-1">Available Count*</label>
           <input
             type="number"
-            name="availableCount"
-            value={vehicle.availableCount}
+            name="available"
+            value={vehicle.available}
             onChange={onInputChange}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
-            min={1}
+            min="0"
           />
         </div>
 
@@ -253,7 +253,7 @@ const Vehicles = () => {
     company: "",
     fuelType: "",
     passengerSeat: "",
-    availableCount: 1,
+    available: 1,
     pricePerHour: "",
     image: null,
     description: "",
@@ -301,7 +301,7 @@ const Vehicles = () => {
       company: vehicle.company,
       fuelType: vehicle.fuelType,
       passengerSeat: vehicle.passengerSeat,
-      availableCount: vehicle.availableCount,
+      available: vehicle.available,
       pricePerHour: vehicle.pricePerHour,
       image: null,
       description: vehicle.description,
@@ -323,7 +323,7 @@ const Vehicles = () => {
       company: "",
       fuelType: "",
       passengerSeat: "",
-      availableCount: 1,
+      available: 1,
       pricePerHour: "",
       image: null,
       description: "",
@@ -339,6 +339,21 @@ const Vehicles = () => {
     setNewVehicle(prev => ({ ...prev, image: e.target.files[0] }));
   };
 
+  const createFormData = (vehicle) => {
+    const formData = new FormData();
+    formData.append("vehicleName", vehicle.vehicleName);
+    formData.append("type", vehicle.type);
+    formData.append("model", vehicle.model);
+    formData.append("company", vehicle.company);
+    formData.append("fuelType", vehicle.fuelType);
+    formData.append("passengerSeat", vehicle.passengerSeat);
+    formData.append("available", vehicle.available);
+    formData.append("pricePerHour", vehicle.pricePerHour);
+    formData.append("description", vehicle.description);
+    if (vehicle.image) formData.append("image", vehicle.image);
+    return formData;
+  };
+
   const handleAddVehicle = async (e) => {
     e.preventDefault();
     const formData = createFormData(newVehicle);
@@ -349,14 +364,17 @@ const Vehicles = () => {
         body: formData,
       });
 
-      if (!response.ok) throw new Error("Failed to add vehicle");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to add vehicle");
+      }
 
       const data = await response.json();
       setVehicles(prev => [...prev, data]);
       showSnackbar("Vehicle added successfully!");
       handleCloseModal();
     } catch (error) {
-      showSnackbar("Failed to add vehicle", "error");
+      showSnackbar(error.message || "Failed to add vehicle", "error");
       console.error("Error adding vehicle:", error);
     }
   };
@@ -374,7 +392,10 @@ const Vehicles = () => {
         }
       );
 
-      if (!response.ok) throw new Error("Failed to update vehicle");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to update vehicle");
+      }
 
       const data = await response.json();
       setVehicles(prev => 
@@ -383,24 +404,9 @@ const Vehicles = () => {
       showSnackbar("Vehicle updated successfully!");
       handleEditModalClose();
     } catch (error) {
-      showSnackbar("Failed to update vehicle", "error");
+      showSnackbar(error.message || "Failed to update vehicle", "error");
       console.error("Error updating vehicle:", error);
     }
-  };
-
-  const createFormData = (vehicle) => {
-    const formData = new FormData();
-    formData.append("vehicleName", vehicle.vehicleName);
-    formData.append("type", vehicle.type);
-    formData.append("model", vehicle.model);
-    formData.append("company", vehicle.company);
-    formData.append("fuelType", vehicle.fuelType);
-    formData.append("passengerSeat", vehicle.passengerSeat);
-    formData.append("available", vehicle.availableCount);
-    formData.append("pricePerHour", vehicle.pricePerHour);
-    formData.append("description", vehicle.description);
-    if (vehicle.image) formData.append("image", vehicle.image);
-    return formData;
   };
 
   const handleDeleteVehicle = async (id) => {
@@ -411,12 +417,15 @@ const Vehicles = () => {
         method: "DELETE",
       });
 
-      if (!response.ok) throw new Error("Failed to delete vehicle");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to delete vehicle");
+      }
 
       setVehicles(prev => prev.filter(vehicle => vehicle.id !== id));
       showSnackbar("Vehicle deleted successfully!");
     } catch (error) {
-      showSnackbar("Failed to delete vehicle", "error");
+      showSnackbar(error.message || "Failed to delete vehicle", "error");
       console.error("Error deleting vehicle:", error);
     }
   };
