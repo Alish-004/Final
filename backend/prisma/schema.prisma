@@ -54,6 +54,8 @@ datasource db {
   amount     Int
   paymentStatus String? @default("unpaid") // unpaid, initiated, completed, failed
   extensionRequests RentalExtensionRequest[]
+  createdAt   DateTime 
+
 }
 
 
@@ -71,4 +73,20 @@ datasource db {
     createdAt   DateTime @default(now())
 
   }
+
+
+  model AdventurePackage {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  duration    String   // e.g. "3 Night 4 days"
+  inclusions  String   // e.g. "Fooding and lodging"
+  vehicleType String   // e.g. "Offroad"
+  startPoint  String   // e.g. "Starts from Kathmandu"
+  price       String   // e.g. "Npr: 16,000"
+  imageUrl    String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
 

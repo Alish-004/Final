@@ -65,6 +65,8 @@ export default async function payment(req, res) {
 }
 
 async function createRental(userId, vehicleId, startDateTime, endDateTime, amount) {
+  const currentDate = new Date();
+  const formattedDate = currentDate.toISOString();
   console.log("vechile id:"+vehicleId)
   try {
     const response = await prisma.rental.create({
@@ -79,7 +81,8 @@ async function createRental(userId, vehicleId, startDateTime, endDateTime, amoun
         endTime:new Date(endDateTime).toISOString(),
         amount: 0,
         status: "active",
-        paymentStatus: "unpaid"
+        paymentStatus: "unpaid",
+        createdAt: formattedDate
       },
       include: {
         user: true,    // Include user in response if needed
