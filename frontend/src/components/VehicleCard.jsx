@@ -1,36 +1,56 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { Car, Star, Clock, Zap } from "lucide-react";
 
 export default function VehicleCard({ vehicle }) {
   return (
-    <div className="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 p-4">
-      <div className="max-w-xs mx-auto flex flex-col justify-between h-full shadow-lg rounded-lg overflow-hidden transition-transform duration-300 ease-in-out hover:scale-105 hover:shadow-xl">
-        <img
-          src={"http://localhost:4000/uploads/" + vehicle.imageUrl.split("\\")[1]}
-          alt={vehicle.name}
-          className="w-full h-48 object-contain aspect-video"
-        />
+    <div className="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 p-3">
+      <div className="h-full flex flex-col bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-gray-100">
+        {/* Image with badge */}
+        <div className="relative">
+          <img
+            src={`http://localhost:4000/uploads/${vehicle.imageUrl.split("\\")[1]}`}
+            alt={vehicle.vehicleName}
+            className="w-full h-48 object-cover"
+            loading="lazy"
+          />
+        </div>
+
+        {/* Vehicle details */}
         <div className="p-4 flex-grow">
-          <h3 className="text-lg font-semibold mb-2">{vehicle.name}</h3>
-          <p className="text-gray-600 mb-4 line-clamp-3">
+          <div className="flex justify-between items-start mb-2">
+            <h3 className="text-lg font-bold text-gray-900 line-clamp-1">{vehicle.vehicleName}</h3>
+            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+              {vehicle.type || "Standard"}
+            </span>
+          </div>
+
+          <p className="text-gray-600 text-sm mb-4 line-clamp-2">
             {vehicle.description}
           </p>
-          <p className="text-lg font-semibold mt-2">
-            Rs {vehicle.pricePerHour} / Hour
-          </p>
+
+          <div className="flex items-center justify-between mt-auto">
+            <div className="flex items-center text-sm text-gray-500">
+              <Clock className="w-4 h-4 mr-1" />
+              <span>Instant booking</span>
+            </div>
+            <div className="text-right">
+              <p className="text-lg font-bold text-gray-900">
+                Rs {vehicle.pricePerHour}
+                <span className="text-sm font-normal text-gray-500">/hour</span>
+              </p>
+            </div>
+          </div>
         </div>
-        <div className="p-4">
-          {true ? (
-            <Link to={"/cardetails/" + vehicle.id} className="no-underline">
-              <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded transition-colors duration-300">
-                Details
-              </button>
-            </Link>
-          ) : (
-            <button className="w-full border border-gray-400 text-gray-400 py-2 px-4 rounded cursor-not-allowed" disabled>
-              Not Available
-            </button>
-          )}
+
+        {/* Action button */}
+        <div className="px-4 pb-4">
+          <Link 
+            to={`/cardetails/${vehicle.id}`} 
+            className="block w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white text-center py-2 px-4 rounded-lg transition-all duration-300 shadow-sm hover:shadow-md"
+          >
+            View Details
+          </Link>
         </div>
       </div>
     </div>

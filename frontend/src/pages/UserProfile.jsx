@@ -39,6 +39,52 @@ const UserProfile = () => {
     setShowConfirmModal(true);
   };
 
+  // Check and update rental statuses
+  const updateRentalStatuses = (rentalsData) => {
+    const now = new Date();
+    return rentalsData.map(rental => {
+      const endTime = new Date(rental.endTime);
+      
+      // Check if rental has been extended
+      const extensions = rentalExtensions[rental.id] || [];
+      const latestPaidExtension = extensions
+        .filter(ext => ext.status === 'approved' && ext.paymentStatus === 'paid')
+        .sort((a, b) => new Date(b.endTime) - new Date(a.endTime))[0];
+      
+      const actualEndTime = latestPaidExtension ? new Date(latestPaidExtension.endTime) : endTime;
+      
+      // Update status based on current time
+      if (rental.status !== 'completed' && now > actualEndTime) {
+        return { ...rental, status: 'completed' };
+      }
+      return rental;
+    });
+  };
+
+  // Sort rentals by createdAt (newest first) and group completed at bottom
+  const sortAndGroupRentals = (rentalsData) => {
+    // Separate completed and active rentals
+    const completedRentals = [];
+    const activeRentals = [];
+    
+    rentalsData.forEach(rental => {
+      const rentalStatus = getRentalStatus(rental);
+      if (rentalStatus.status === 'completed') {
+        completedRentals.push(rental);
+      } else {
+        activeRentals.push(rental);
+      }
+    });
+
+    // Sort each group by createdAt (newest first)
+    const sortByCreatedAt = (a, b) => new Date(b.createdAt) - new Date(a.createdAt);
+    activeRentals.sort(sortByCreatedAt);
+    completedRentals.sort(sortByCreatedAt);
+
+    // Combine with active rentals first
+    return [...activeRentals, ...completedRentals];
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -53,9 +99,8 @@ const UserProfile = () => {
           headers: { Authorization: `Bearer ${token}` }
         });
 
-        const rentalsData = rentalsResponse.data.data || [];
-        setRentals(rentalsData);
-
+        let rentalsData = rentalsResponse.data.data || [];
+        
         // Fetch extensions for each rental
         const extensionsMap = {};
         for (const rental of rentalsData) {
@@ -71,6 +116,13 @@ const UserProfile = () => {
           }
         }
         setRentalExtensions(extensionsMap);
+        
+        // Update rental statuses based on current time
+        rentalsData = updateRentalStatuses(rentalsData);
+        
+        // Sort rentals by createdAt and group completed at bottom
+        rentalsData = sortAndGroupRentals(rentalsData);
+        setRentals(rentalsData);
 
         setError(null);
       } catch (err) {
@@ -86,6 +138,11 @@ const UserProfile = () => {
     };
 
     fetchData();
+    
+    // Set up interval to check rental statuses periodically (every minute)
+    const intervalId = setInterval(fetchData, 60000);
+    
+    return () => clearInterval(intervalId);
   }, [navigate]);
 
   const hasPendingExtension = (rentalId) => {
@@ -268,6 +325,25 @@ const UserProfile = () => {
     return extension.status === 'approved' && extension.paymentStatus !== 'paid';
   };
 
+  // ... [rest of the helper functions remain exactly the same] ...
+
+  const getRentalStatus = (rental) => {
+    const now = new Date();
+    const extensions = rentalExtensions[rental.id] || [];
+    const latestPaidExtension = extensions
+      .filter(ext => ext.status === 'approved' && ext.paymentStatus === 'paid')
+      .sort((a, b) => new Date(b.endTime) - new Date(a.endTime))[0];
+    
+    const actualEndTime = latestPaidExtension ? new Date(latestPaidExtension.endTime) : new Date(rental.endTime);
+    
+    if (now > actualEndTime) {
+      return { status: 'completed', color: 'bg-green-100 text-green-800' };
+    }
+    return { status: 'active', color: 'bg-blue-100 text-blue-800' };
+  };
+
+  // ... [rest of the component code remains exactly the same until the return statement] ...
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 py-12 px-4 sm:px-6 lg:px-8">
       {/* Toast Notification */}
@@ -349,136 +425,147 @@ const UserProfile = () => {
             </div>
           ) : rentals.length > 0 ? (
             <div className="space-y-4">
-              {rentals.map((rental) => (
-                <div 
-                  key={rental.id} 
-                  className="bg-white rounded-lg p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200"
-                >
-                  <div className="flex flex-col">
-                    <div className="flex flex-col md:flex-row md:justify-between gap-4">
-                      <div>
-                        <h4 className="font-bold text-gray-800 text-lg">
-                          {rental.vehicle.vehicleName}
-                        </h4>
-                        <p className="text-sm text-gray-500">
-                          {rental.vehicle.company} • {rental.vehicle.model}
-                        </p>
+              {rentals.map((rental) => {
+                const rentalStatus = getRentalStatus(rental);
+                const isCompleted = rentalStatus.status === 'completed';
+                
+                return (
+                  <div 
+                    key={rental.id} 
+                    className={`bg-white rounded-lg p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200 ${
+                      isCompleted ? 'opacity-90' : ''
+                    }`}
+                  >
+                    {isCompleted && (
+                      <div className="mb-2 text-sm text-gray-500">
+                        <span className="bg-gray-100 px-2 py-1 rounded">Completed</span>
                       </div>
-                      <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${
-                        rental.status === 'completed' 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-blue-100 text-blue-800'
-                      }`}>
-                        {rental.status === 'completed' ? (
-                          <Check className="text-green-600" size={16} />
-                        ) : (
-                          <AlertCircle className="text-blue-600" size={16} />
-                        )}
-                        {rental.status}
-                      </div>
-                    </div>
-                    
-                    <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="flex flex-col">
-                        <span className="text-sm text-gray-500">Start Date</span>
-                        <span className="font-medium">{formatDate(rental.startTime)}</span>
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-sm text-gray-500">End Date</span>
-                        <span className="font-medium">{formatDate(rental.endTime)}</span>
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-sm text-gray-500">Price</span>
-                        <span className="font-medium">Rs. {rental.vehicle.pricePerHour}/hour</span>
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-sm text-gray-500">Total</span>
-                        <span className="font-medium">
-                          Rs. {calculateTotal(
-                            rental.vehicle.pricePerHour, 
-                            rental.startTime, 
-                            rental.endTime
-                          )}
-                        </span>
-                      </div>
-                    </div>
-
-                    {rental.status === 'active' && (
-                      <div className="mt-4 flex justify-between items-center">
-                        <button
-                          onClick={() => handleRequestExtension(rental)}
-                          disabled={hasPendingExtension(rental.id)}
-                          className={`px-4 py-2 rounded transition-colors duration-200 ${
-                            hasPendingExtension(rental.id)
-                              ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
-                              : 'bg-blue-500 hover:bg-blue-600 text-white'
-                          }`}
-                        >
-                          {hasPendingExtension(rental.id) ? 'Extension Pending' : 'Request Extension'}
-                        </button>
-                        
-                        <button 
-                          onClick={() => toggleRentalExpansion(rental.id)}
-                          className="flex items-center text-blue-600 hover:text-blue-800 transition-colors duration-200"
-                        >
-                          {expandedRental === rental.id ? (
-                            <>
-                              <span>Hide Extensions</span>
-                              <ChevronUp className="ml-1" size={18} />
-                            </>
+                    )}
+                    <div className="flex flex-col">
+                      <div className="flex flex-col md:flex-row md:justify-between gap-4">
+                        <div>
+                          <h4 className="font-bold text-gray-800 text-lg">
+                            {rental.vehicle.vehicleName}
+                          </h4>
+                          <p className="text-sm text-gray-500">
+                            {rental.vehicle.company} • {rental.vehicle.model}
+                          </p>
+                          <p className="text-xs text-gray-400 mt-1">
+                            Booked on: {formatDate(rental.createdAt)}
+                          </p>
+                        </div>
+                        <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${rentalStatus.color}`}>
+                          {rentalStatus.status === 'completed' ? (
+                            <Check className="text-green-600" size={16} />
                           ) : (
-                            <>
-                              <span>View Extensions</span>
-                              <ChevronDown className="ml-1" size={18} />
-                            </>
+                            <AlertCircle className="text-blue-600" size={16} />
                           )}
-                        </button>
+                          {rentalStatus.status}
+                        </div>
                       </div>
-                    )}
+                      
+                      <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="flex flex-col">
+                          <span className="text-sm text-gray-500">Start Date</span>
+                          <span className="font-medium">{formatDate(rental.startTime)}</span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-sm text-gray-500">End Date</span>
+                          <span className="font-medium">{formatDate(rental.endTime)}</span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-sm text-gray-500">Price</span>
+                          <span className="font-medium">Rs. {rental.vehicle.pricePerHour}/hour</span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-sm text-gray-500">Total</span>
+                          <span className="font-medium">
+                            Rs. {calculateTotal(
+                              rental.vehicle.pricePerHour, 
+                              rental.startTime, 
+                              rental.endTime
+                            )}
+                          </span>
+                        </div>
+                      </div>
 
-                    {expandedRental === rental.id && (
-                      <div className="mt-4">
-                        <h4 className="font-medium text-gray-700 mb-2">Extension Requests:</h4>
-                        {rentalExtensions[rental.id]?.length > 0 ? (
-                          <div className="space-y-3">
-                            {rentalExtensions[rental.id].map((extension) => {
-                              const status = getStatusBadge(extension);
-                              
-                              return (
-                                <div key={extension.id} className="p-3 border rounded-lg bg-gray-50">
-                                  <div className="flex justify-between items-start">
-                                    <div>
-                                      <p className="font-medium">Requested End Time: {formatDate(extension.requestedEndTime)}</p>
-                                      <p className="text-sm">Additional Amount: Rs. {extension.additionalAmount}</p>
+                      {rentalStatus.status === 'active' && (
+                        <div className="mt-4 flex justify-between items-center">
+                          <button
+                            onClick={() => handleRequestExtension(rental)}
+                            disabled={hasPendingExtension(rental.id)}
+                            className={`px-4 py-2 rounded transition-colors duration-200 ${
+                              hasPendingExtension(rental.id)
+                                ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                                : 'bg-blue-500 hover:bg-blue-600 text-white'
+                            }`}
+                          >
+                            {hasPendingExtension(rental.id) ? 'Extension Pending' : 'Request Extension'}
+                          </button>
+                          
+                          <button 
+                            onClick={() => toggleRentalExpansion(rental.id)}
+                            className="flex items-center text-blue-600 hover:text-blue-800 transition-colors duration-200"
+                          >
+                            {expandedRental === rental.id ? (
+                              <>
+                                <span>Hide Extensions</span>
+                                <ChevronUp className="ml-1" size={18} />
+                              </>
+                            ) : (
+                              <>
+                                <span>View Extensions</span>
+                                <ChevronDown className="ml-1" size={18} />
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      )}
+
+                      {expandedRental === rental.id && (
+                        <div className="mt-4">
+                          <h4 className="font-medium text-gray-700 mb-2">Extension Requests:</h4>
+                          {rentalExtensions[rental.id]?.length > 0 ? (
+                            <div className="space-y-3">
+                              {rentalExtensions[rental.id].map((extension) => {
+                                const status = getStatusBadge(extension);
+                                
+                                return (
+                                  <div key={extension.id} className="p-3 border rounded-lg bg-gray-50">
+                                    <div className="flex justify-between items-start">
+                                      <div>
+                                        <p className="font-medium">Requested End Time: {formatDate(extension.requestedEndTime)}</p>
+                                        <p className="text-sm">Additional Amount: Rs. {extension.additionalAmount}</p>
+                                      </div>
+                                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${status.color}`}>
+                                        {status.text}
+                                      </span>
                                     </div>
-                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${status.color}`}>
-                                      {status.text}
-                                    </span>
+                                    
+                                    {shouldShowPayButton(extension) && (
+                                      <button
+                                        onClick={() => initiatePaymentForExtension(extension.id)}
+                                        disabled={isProcessing}
+                                        className="mt-2 w-full bg-green-600 hover:bg-green-700 text-white py-1 rounded disabled:bg-green-300 text-sm transition-colors duration-200"
+                                      >
+                                        {isProcessing ? 'Processing...' : 'Pay Now'}
+                                      </button>
+                                    )}
                                   </div>
-                                  
-                                  {shouldShowPayButton(extension) && (
-                                    <button
-                                      onClick={() => initiatePaymentForExtension(extension.id)}
-                                      disabled={isProcessing}
-                                      className="mt-2 w-full bg-green-600 hover:bg-green-700 text-white py-1 rounded disabled:bg-green-300 text-sm transition-colors duration-200"
-                                    >
-                                      {isProcessing ? 'Processing...' : 'Pay Now'}
-                                    </button>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        ) : (
-                          <div className="p-3 bg-gray-50 rounded-lg">
-                            <p className="text-gray-500">No extension requests found</p>
-                          </div>
-                        )}
-                      </div>
-                    )}
+                                );
+                              })}
+                            </div>
+                          ) : (
+                            <div className="p-3 bg-gray-50 rounded-lg">
+                              <p className="text-gray-500">No extension requests found</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <div className="text-center bg-gray-100 rounded-xl p-8">

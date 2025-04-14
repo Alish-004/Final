@@ -6,8 +6,8 @@ const VehicleRental = () => {
   // State for vehicles and filters
   const [vehicles, setVehicles] = useState([]);
   const [filteredVehicles, setFilteredVehicles] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
   const [priceFilter, setPriceFilter] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
 
   // Fetch vehicles from backend when component mounts
   useEffect(() => {
@@ -28,34 +28,40 @@ const VehicleRental = () => {
     fetchVehicles();
   }, []);
 
-  // Filter vehicles based on search and price
+  // Filter vehicles based on price and category
   useEffect(() => {
-    let result = vehicles;
-    
-    if (searchTerm) {
-      result = result.filter(vehicle => 
-        vehicle.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        vehicle.type.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
+    let result = [...vehicles];
 
+    // Filter by price - updated to match the displayed price ranges
     if (priceFilter) {
       result = result.filter(vehicle => {
+        if (!vehicle || vehicle.pricePerHour === undefined) return false;
         switch(priceFilter) {
           case 'low':
-            return vehicle.pricePerHour < 50;
+            return vehicle.pricePerHour < 1500;
           case 'medium':
-            return vehicle.pricePerHour >= 50 && vehicle.pricePerHour < 100;
+            return vehicle.pricePerHour >= 1500 && vehicle.pricePerHour < 2000;
           case 'high':
-            return vehicle.pricePerHour >= 100;
+            return vehicle.pricePerHour >= 2000;
           default:
             return true;
         }
       });
     }
 
+    // Filter by category
+    if (categoryFilter) {
+      result = result.filter(vehicle => {
+        if (!vehicle || !vehicle.type) return false;
+        return vehicle.type.toLowerCase() === categoryFilter.toLowerCase();
+      });
+    }
+
     setFilteredVehicles(result);
-  }, [searchTerm, priceFilter, vehicles]);
+  }, [priceFilter, categoryFilter, vehicles]);
+
+  // Get unique categories for dropdown
+  const categories = [...new Set(vehicles.map(vehicle => vehicle.type).filter(Boolean))];
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -71,18 +77,21 @@ const VehicleRental = () => {
           </p>
         </div>
 
-        {/* Search and Filter Section */}
+        {/* Filter Section */}
         <div className="mb-8 flex flex-col md:flex-row gap-4 justify-center items-center">
-          {/* Search Input */}
+          {/* Category Filter */}
           <div className="relative w-full max-w-md">
-            <input 
-              type="text" 
-              placeholder="Search vehicles by name or type" 
+            <select 
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <Search className="absolute left-3 top-3 text-gray-400" size={20} />
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+            >
+              <option value="">All Categories</option>
+              {categories.map((category, index) => (
+                <option key={index} value={category}>{category}</option>
+              ))}
+            </select>
+            <Filter className="absolute left-3 top-3 text-gray-400" size={20} />
           </div>
 
           {/* Price Filter */}
@@ -93,9 +102,9 @@ const VehicleRental = () => {
               onChange={(e) => setPriceFilter(e.target.value)}
             >
               <option value="">All Prices</option>
-              <option value="low">Budget Friendly (Under Rs50/hour)</option>
-              <option value="medium">Mid-Range (Rs50-Rs100/hour)</option>
-              <option value="high">Luxury (Rs100+/hour)</option>
+              <option value="low">Budget Friendly (Under Rs1500/hour)</option>
+              <option value="medium">Mid-Range (Rs1500-Rs2000/hour)</option>
+              <option value="high">Luxury (Rs2000+/hour)</option>
             </select>
             <Filter className="absolute left-3 top-3 text-gray-400" size={20} />
           </div>
@@ -104,7 +113,7 @@ const VehicleRental = () => {
         {/* Vehicles Grid */}
         {filteredVehicles.length === 0 ? (
           <div className="text-center py-10">
-            <p className="text-xl text-gray-600">No vehicles found matching your search.</p>
+            <p className="text-xl text-gray-600">No vehicles found matching your filters.</p>
           </div>
         ) : (
           <div className="flex flex-wrap -mx-4">

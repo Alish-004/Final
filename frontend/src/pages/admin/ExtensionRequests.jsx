@@ -19,8 +19,6 @@ function ExtensionRequests() {
                     Authorization: `Bearer ${localStorage.getItem('token')}`
                 }
             });
-            console.log(response)
-            console.log(response.data)
             setExtensions(response.data);
             setLoading(false);
         } catch (error) {
@@ -40,7 +38,7 @@ function ExtensionRequests() {
                     Authorization: `Bearer ${localStorage.getItem('token')}`
                 }
             });
-            fetchExtensions(); // Refresh the list
+            fetchExtensions();
         } catch (error) {
             console.error('Error approving extension:', error);
         } finally {
@@ -59,7 +57,7 @@ function ExtensionRequests() {
                     Authorization: `Bearer ${localStorage.getItem('token')}`
                 }
             });
-            fetchExtensions(); // Refresh the list
+            fetchExtensions();
         } catch (error) {
             console.error('Error rejecting extension:', error);
         } finally {
@@ -81,7 +79,7 @@ function ExtensionRequests() {
     };
 
     return (
-        <div className="container mx-auto px-4 py-6">
+        <div className="w-full px-4 py-6">
             <h1 className="text-2xl font-bold mb-6">Rental Extension Requests</h1>
             
             {loading ? (
@@ -90,18 +88,18 @@ function ExtensionRequests() {
                 </div>
             ) : (
                 <div className="bg-white shadow rounded-lg overflow-hidden">
-                    <div className="overflow-x-auto">
+                    <div className="overflow-x-auto w-full">
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-gray-50">
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vehicle</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Current End Date</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Requested End Date</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Additional Amount</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment Status</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                    <th className="px-2 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Customer</th>
+                                    <th className="px-2 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Vehicle</th>
+                                    <th className="px-2 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Current End Date</th>
+                                    <th className="px-1 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Requested End Date</th>
+                                    <th className="px-1 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Additional Amount</th>
+                                    <th className="px-1 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Payment Status</th>
+                                    <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Status</th>
+                                    <th className="px-1 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
