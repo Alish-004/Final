@@ -57,6 +57,11 @@ function Sidebar() {
             path: "/admin/settings", 
             icon: <FaCog />, 
             label: "Settings" 
+        },
+        { 
+            path: "/admin/rentals", 
+            icon: <FaCar/>, 
+            label: "Rental History" 
         }
     ];
 
@@ -107,5 +112,10 @@ function Sidebar() {
         </div>
     );
 }
+
+
+
+
+
 
 export default Admin;

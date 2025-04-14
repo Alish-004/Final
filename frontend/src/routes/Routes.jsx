@@ -23,6 +23,7 @@ import VehicleRental from "../pages/vehicle";
 import ExtensionRequests from "../pages/admin/ExtensionRequests";
 import ExtensionPaymentVerify from "../pages/ExtensionPaymentVerify";
 import AdminPackagesPage from "../pages/admin/AdminPackages";
+import Rentals from "../pages/admin/Rentals";
 
 function AppRoutes() {
   const [userinfo] = useRecoilState(userSelector);
@@ -61,6 +62,7 @@ function AppRoutes() {
               <Route path="extensions" element={<ExtensionRequests></ExtensionRequests>}></Route>
               <Route path="settings" element={<Settings />} />
               <Route path="packages" element={<AdminPackagesPage></AdminPackagesPage>}></Route>
+              <Route path="rentals" element={<Rentals></Rentals>}></Route>
             </Route>
             <Route path="*" element={<ErrorPage />} />
           </Routes>

@@ -1,10 +1,13 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useRecoilState } from 'recoil';
+import { userSelector } from '../store/atoms';
 
 function VerifyPayment() {
   const [searchParams] = useSearchParams();
   const [downloadReady, setDownloadReady] = useState(false);
+  const [userState, setUserState] = useRecoilState(userSelector)
   
   // Get individual parameters
   const pidx = searchParams.get('pidx');
@@ -43,14 +46,15 @@ function VerifyPayment() {
   const handleDownloadBill = () => {
     // Create a simple text representation of the bill
     const billContent = 
-`Payment Receipt
-----------------
-Payment ID: ${pidx}
-Transaction ID: ${txnId}
-Amount: ${amount}
-Status: ${status}
-Date: ${new Date().toLocaleString()}
-`;
+                            `Payment Receipt
+                            ----------------
+                            Payment ID: ${pidx}
+                            Transaction ID: ${txnId}
+                            Amount: ${amount/100}
+                            Status: ${status}
+                            Date: ${new Date().toLocaleString()}
+                            UserName:${userState.firstName+ " "+userState.lastName}
+                            `;
 
     // Create a blob and download link
     const blob = new Blob([billContent], { type: 'text/plain' });
@@ -73,10 +77,12 @@ Date: ${new Date().toLocaleString()}
       <div className="mb-6 border p-4 rounded-md bg-gray-50">
         <p className="mb-2"><strong>Payment ID:</strong> {pidx}</p>
         <p className="mb-2"><strong>Transaction ID:</strong> {txnId}</p>
-        <p className="mb-2"><strong>Amount:</strong> {amount}</p>
+        <p className="mb-2"><strong>Amount:</strong> {amount/100}</p>
         <p className={`font-bold ${status === "Completed" ? "text-green-600" : "text-red-600"}`}>
           <strong>Status:</strong> {status}
         </p>
+        <p className='mb-2'><strong>Date: </strong>{new Date().toLocaleString()}</p>
+       <p className='mb-2'> <strong>UserName:</strong> {userState.firstName+ " "+userState.lastName}</p>
       </div>
       
       {status === "Completed" ? (
