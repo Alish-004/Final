@@ -7,6 +7,9 @@ const prisma = new PrismaClient();
 router.get("/user", getAllCustomers)
 
 
+
+router.get("/rentals", getVehicleRentals)
+
 async function getAllCustomers (req,res) {
     const users = [];
     const response =  await prisma.user.findMany({
@@ -19,5 +22,16 @@ async function getAllCustomers (req,res) {
 
 }
 
+
+async function getVehicleRentals(req,res) {
+    const  response = await prisma.rental.findMany({
+        include:{
+            user:true,
+        }
+    })
+
+    res.send(response)
+    
+}
 
 export default router;
