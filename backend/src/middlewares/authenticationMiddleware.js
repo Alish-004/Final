@@ -47,7 +47,7 @@ const auth = async (req, res, next) => {
 };
 
 const admin = (req, res, next) => {
-  if (req.user && req.user.role === 'ADMIN') {
+  if (req.user && (req.user.role === 'ADMIN' || req.user.role==="admin")) {
     next();
   } else {
     return res.status(403).json({ success: false, message: 'Not authorized as admin' });

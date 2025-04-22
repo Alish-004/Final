@@ -6,7 +6,7 @@ import cors from 'cors';
 const app = express();
 app.use(cors({
   origin: 'http://localhost:5173', // React app's URL
-  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allowed HTTP methods
+  methods: ['GET', 'POST', 'PUT', 'DELETE','PATCH'], // Allowed HTTP methods
   credentials: true // Enable cookies if needed
 }));
 

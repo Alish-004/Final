@@ -6,9 +6,14 @@ const prisma = new PrismaClient();
 // User requests an extension
 export const requestExtension = async (req, res) => {
   try {
-    const { rentalId, requestedEndTime } = req.body;
+    let { rentalId, requestedEndTime,additionalAmount } = req.body;
+    console.log(requestedEndTime)
+    additionalAmount = parseInt(additionalAmount)
     const userId = req.user.id;
+    console.log("additional amount")
+    console.log(additionalAmount)
 
+    console.log("extension:")
     // Verify the rental belongs to the user
     const rental = await prisma.rental.findFirst({
       where: {
@@ -41,7 +46,7 @@ export const requestExtension = async (req, res) => {
       : rental.endTime;
 
     // Validate requested end time is in the future and after current end time
-    const requestedEnd = new Date(requestedEndTime);
+    const requestedEnd = new Date(requestedEndTime)
     if (requestedEnd <= baseEndTime) {
       return res.status(400).json({ 
         error: "Requested end time must be after current rental end time",
@@ -49,10 +54,11 @@ export const requestExtension = async (req, res) => {
       });
     }
 
-    // Calculate additional amount
-    const timeDiff = requestedEnd - baseEndTime;
-    const hours = timeDiff / (1000 * 60 * 60);
-    const additionalAmount = Math.ceil(hours) * rental.vehicle.pricePerHour;
+    // const timeDiff = requestedEnd - baseEndTime;
+    // const hours = timeDiff / (1000 * 60 * 60);
+    // const additionalAmount = Math.ceil(hours) * rental.vehicle.pricePerHour;
+    // console.log("Additional amount")
+    // console.log(additionalAmount)
 
     // Create extension request
     const extensionRequest = await prisma.rentalExtensionRequest.create({
@@ -83,6 +89,8 @@ export const processExtension = async (req, res) => {
   try {
     const { extensionId, action } = req.body;
 
+    console.log("extension id")
+    console.log(extensionId)
     const extension = await prisma.rentalExtensionRequest.findUnique({
       where: { id: extensionId },
       include: { 
@@ -243,6 +251,8 @@ export const verifyExtensionPayment = async (req, res) => {
 
     const verification = await axios(verifyOptions);
     const paymentStatus = verification.data.status;
+    console.log("payment status")
+    console.log(paymentStatus)
 
     if (paymentStatus !== 'Completed') {
       await prisma.rentalExtensionRequest.update({
