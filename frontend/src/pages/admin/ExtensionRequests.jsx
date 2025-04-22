@@ -19,6 +19,7 @@ function ExtensionRequests() {
                     Authorization: `Bearer ${localStorage.getItem('token')}`
                 }
             });
+            console.log(response.data)
             setExtensions(response.data);
             setLoading(false);
         } catch (error) {
@@ -95,6 +96,8 @@ function ExtensionRequests() {
                                     <th className="px-2 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Customer</th>
                                     <th className="px-2 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Vehicle</th>
                                     <th className="px-2 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Current End Date</th>
+                                    <th className="px-2 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Requested at</th>
+                                
                                     <th className="px-1 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Requested End Date</th>
                                     <th className="px-1 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Additional Amount</th>
                                     <th className="px-1 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Payment Status</th>
@@ -126,6 +129,9 @@ function ExtensionRequests() {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                 {format(new Date(extension.rental.endTime), 'MMM dd, yyyy hh:mm a')}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                {format(new Date(extension.createdAt), 'MMM dd, yyyy hh:mm a')}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                 {format(new Date(extension.requestedEndTime), 'MMM dd, yyyy hh:mm a')}

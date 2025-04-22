@@ -4,6 +4,7 @@ import { User, LogOut, Calendar, Check, MapPin, Phone, Mail, Clock, AlertCircle,
 import { useRecoilState } from "recoil";
 import { userSelector } from "../store/atoms";
 import { useNavigate } from "react-router-dom";
+import Footer from "../components/Footer";
 
 const UserProfile = () => {
   const [user, setUser] = useRecoilState(userSelector);
@@ -39,37 +40,30 @@ const UserProfile = () => {
     setShowConfirmModal(true);
   };
 
-  // Check and update rental statuses
-  const updateRentalStatuses = (rentalsData) => {
-    const now = new Date();
-    return rentalsData.map(rental => {
-      const endTime = new Date(rental.endTime);
-      
-      // Check if rental has been extended
-      const extensions = rentalExtensions[rental.id] || [];
-      const latestPaidExtension = extensions
-        .filter(ext => ext.status === 'approved' && ext.paymentStatus === 'paid')
-        .sort((a, b) => new Date(b.endTime) - new Date(a.endTime))[0];
-      
-      const actualEndTime = latestPaidExtension ? new Date(latestPaidExtension.endTime) : endTime;
-      
-      // Update status based on current time
-      if (rental.status !== 'completed' && now > actualEndTime) {
-        return { ...rental, status: 'completed' };
-      }
-      return rental;
-    });
+  // Get the end time from the rental (without considering extensions)
+  const getRentalEndTime = (rental) => {
+    return new Date(rental.endTime);
+  };
+
+  // Get rental status based on the status field
+  const getRentalStatus = (rental) => {
+    const isActive = rental.status === 'active';
+    const endTime = getRentalEndTime(rental);
+    
+    return {
+      status: rental.status,
+      color: isActive ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800',
+      endTime: endTime
+    };
   };
 
   // Sort rentals by createdAt (newest first) and group completed at bottom
   const sortAndGroupRentals = (rentalsData) => {
-    // Separate completed and active rentals
     const completedRentals = [];
     const activeRentals = [];
     
     rentalsData.forEach(rental => {
-      const rentalStatus = getRentalStatus(rental);
-      if (rentalStatus.status === 'completed') {
+      if (rental.status === 'completed') {
         completedRentals.push(rental);
       } else {
         activeRentals.push(rental);
@@ -81,7 +75,6 @@ const UserProfile = () => {
     activeRentals.sort(sortByCreatedAt);
     completedRentals.sort(sortByCreatedAt);
 
-    // Combine with active rentals first
     return [...activeRentals, ...completedRentals];
   };
 
@@ -116,9 +109,6 @@ const UserProfile = () => {
           }
         }
         setRentalExtensions(extensionsMap);
-        
-        // Update rental statuses based on current time
-        rentalsData = updateRentalStatuses(rentalsData);
         
         // Sort rentals by createdAt and group completed at bottom
         rentalsData = sortAndGroupRentals(rentalsData);
@@ -187,6 +177,8 @@ const UserProfile = () => {
       return;
     }
 
+    const additionalAmount = calculateAdditionalAmount();
+
     try {
       setIsProcessing(true);
       const token = localStorage.getItem("token");
@@ -195,7 +187,8 @@ const UserProfile = () => {
         "http://localhost:4000/api/extension/request",
         { 
           rentalId: selectedRental.id,
-          requestedEndTime: newEndTime 
+          requestedEndTime: newEndTime,
+          additionalAmount: additionalAmount
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -227,7 +220,6 @@ const UserProfile = () => {
   };
 
   const initiatePaymentForExtension = (extensionId) => {
-    // Store extension ID in localStorage for verification page
     localStorage.setItem('currentExtensionId', extensionId);
     setCurrentExtensionId(extensionId);
     showConfirmation(
@@ -248,7 +240,6 @@ const UserProfile = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      // Redirect to Khalti payment page
       window.location.href = paymentResponse.data.payment_url;
 
     } catch (error) {
@@ -263,40 +254,17 @@ const UserProfile = () => {
   const getMinExtensionTime = () => {
     if (!selectedRental) return "";
     
-    // Find all extensions for this rental
-    const extensions = rentalExtensions[selectedRental.id] || [];
-    
-    // Filter only approved and paid extensions, then sort by endTime descending
-    const paidExtensions = extensions
-      .filter(ext => ext.status === 'approved' && ext.paymentStatus === 'paid')
-      .sort((a, b) => new Date(b.endTime) - new Date(a.endTime));
-    
-    // Use the latest paid extension end time if available, otherwise use rental end time
-    const baseEndTime = paidExtensions.length > 0 
-      ? new Date(paidExtensions[0].endTime)
-      : new Date(selectedRental.endTime);
-    
-    // Add 1 hour to the base end time for minimum extension
+    // Use the rental's original end time as the minimum extension time
+    const baseEndTime = new Date(selectedRental.endTime);
     baseEndTime.setHours(baseEndTime.getHours() + 1);
-    
-    // Return in format suitable for datetime-local input (YYYY-MM-DDTHH:MM)
     return baseEndTime.toISOString().slice(0, 16);
   };
 
   const calculateAdditionalAmount = () => {
     if (!selectedRental || !newEndTime) return 0;
     
-    // Find the base end time (either from rental or latest paid extension)
-    const extensions = rentalExtensions[selectedRental.id] || [];
-    const paidExtensions = extensions
-      .filter(ext => ext.status === 'approved' && ext.paymentStatus === 'paid')
-      .sort((a, b) => new Date(b.endTime) - new Date(a.endTime));
-    
-    const baseEndTime = paidExtensions.length > 0 
-      ? new Date(paidExtensions[0].endTime)
-      : new Date(selectedRental.endTime);
-    
-    // Calculate hours difference
+    // Calculate from the rental's original end time to the new end time
+    const baseEndTime = new Date(selectedRental.endTime);
     const hours = (new Date(newEndTime) - baseEndTime) / (1000 * 60 * 60);
     return (hours * selectedRental.vehicle.pricePerHour).toFixed(2);
   };
@@ -324,25 +292,6 @@ const UserProfile = () => {
   const shouldShowPayButton = (extension) => {
     return extension.status === 'approved' && extension.paymentStatus !== 'paid';
   };
-
-  // ... [rest of the helper functions remain exactly the same] ...
-
-  const getRentalStatus = (rental) => {
-    const now = new Date();
-    const extensions = rentalExtensions[rental.id] || [];
-    const latestPaidExtension = extensions
-      .filter(ext => ext.status === 'approved' && ext.paymentStatus === 'paid')
-      .sort((a, b) => new Date(b.endTime) - new Date(a.endTime))[0];
-    
-    const actualEndTime = latestPaidExtension ? new Date(latestPaidExtension.endTime) : new Date(rental.endTime);
-    
-    if (now > actualEndTime) {
-      return { status: 'completed', color: 'bg-green-100 text-green-800' };
-    }
-    return { status: 'active', color: 'bg-blue-100 text-blue-800' };
-  };
-
-  // ... [rest of the component code remains exactly the same until the return statement] ...
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 py-12 px-4 sm:px-6 lg:px-8">
@@ -428,6 +377,7 @@ const UserProfile = () => {
               {rentals.map((rental) => {
                 const rentalStatus = getRentalStatus(rental);
                 const isCompleted = rentalStatus.status === 'completed';
+                const endTime = rentalStatus.endTime;
                 
                 return (
                   <div 
@@ -471,7 +421,7 @@ const UserProfile = () => {
                         </div>
                         <div className="flex flex-col">
                           <span className="text-sm text-gray-500">End Date</span>
-                          <span className="font-medium">{formatDate(rental.endTime)}</span>
+                          <span className="font-medium">{formatDate(endTime)}</span>
                         </div>
                         <div className="flex flex-col">
                           <span className="text-sm text-gray-500">Price</span>
@@ -483,7 +433,7 @@ const UserProfile = () => {
                             Rs. {calculateTotal(
                               rental.vehicle.pricePerHour, 
                               rental.startTime, 
-                              rental.endTime
+                              endTime
                             )}
                           </span>
                         </div>
@@ -596,11 +546,6 @@ const UserProfile = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Current End Time</label>
                 <p className="font-medium">{formatDate(selectedRental.endTime)}</p>
-                {rentalExtensions[selectedRental.id]?.some(ext => ext.status === 'approved' && ext.paymentStatus === 'paid') && (
-                  <p className="text-xs text-gray-500 mt-1">
-                    (Includes previous extensions)
-                  </p>
-                )}
               </div>
               
               <div>

@@ -21,25 +21,42 @@ const CarDetailPage = () => {
     isValid: false
   });
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [isExtension, setIsExtension] = useState(false);
+  const [originalEndDateTime, setOriginalEndDateTime] = useState(null);
   const { carId } = useParams();
   const navigate = useNavigate();
 
-  // Check if user is logged in
   useEffect(() => {
     const token = localStorage.getItem("token");
     setIsLoggedIn(!!token);
   }, []);
 
-  // Fetch vehicle data
   useEffect(() => {
     const fetchVehicleData = async () => {
       try {
         setLoading(true);
         const response = await axios.get(`http://localhost:4000/vehicle/get/${carId}`);
         setVehicle(response.data);
-        setLoading(false);
+        
+        // Check if this is an extension request
+        const rentalId = localStorage.getItem("rentalId");
+        if (rentalId) {
+          const rentalRes = await axios.get(`http://localhost:4000/api/rentals/${rentalId}`, {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`
+            }
+          });
+          if (rentalRes.data.vehicleId === carId) {
+            setIsExtension(true);
+            setOriginalEndDateTime(rentalRes.data.endDateTime);
+            setStartDateTime(rentalRes.data.endDateTime);
+          }
+        }
       } catch (err) {
-        setError("Failed to load vehicle data. Please try again.");
+        setError(err.response?.data?.message || "Failed to load vehicle data");
+      } finally {
         setLoading(false);
       }
     };
@@ -47,18 +64,23 @@ const CarDetailPage = () => {
     fetchVehicleData();
   }, [carId]);
 
-  // Calculate total price and time difference
   useEffect(() => {
     if (vehicle && startDateTime && endDateTime) {
       const startDateObj = new Date(startDateTime);
       const endDateObj = new Date(endDateTime);
       
-      const diffInMs = endDateObj - startDateObj;
+      // Ensure we always calculate from the earlier date to the later date
+      const diffInMs = Math.abs(endDateObj - startDateObj);
       const diffInHours = diffInMs / (1000 * 60 * 60);
       const hours = Math.floor(diffInHours);
       const minutes = Math.round((diffInHours - hours) * 60);
 
-      const isValid = diffInMs >= 60 * 60 * 1000; // At least 1 hour
+      // For extensions, minimum duration is 1 hour and must be after original end time
+      const isValid = isExtension 
+        ? (diffInMs >= 60 * 60 * 1000 && endDateObj > new Date(originalEndDateTime))
+        : diffInMs >= 60 * 60 * 1000;
+
+      const price = diffInHours * vehicle.pricePerHour;
 
       setTimeDifference({
         hours,
@@ -66,8 +88,6 @@ const CarDetailPage = () => {
         totalHours: diffInHours,
         isValid
       });
-
-      const price = diffInHours * vehicle.pricePerHour;
       setTotalPrice(price);
     } else {
       setTimeDifference({
@@ -76,16 +96,13 @@ const CarDetailPage = () => {
         totalHours: 0,
         isValid: false
       });
+      setTotalPrice(0);
     }
-  }, [startDateTime, endDateTime, vehicle]);
+  }, [startDateTime, endDateTime, vehicle, isExtension, originalEndDateTime]);
 
   const handleStartDateTimeChange = (e) => {
     if (!isLoggedIn) {
-      setNotification({
-        open: true,
-        message: "Please login to select dates",
-        severity: "error",
-      });
+      showNotification("Please login to select dates", "error");
       return;
     }
 
@@ -93,19 +110,13 @@ const CarDetailPage = () => {
     const now = new Date();
     const selectedDate = new Date(selectedDateTime);
 
-    // Check if selected time is in the past
-    if (selectedDate < now) {
-      setNotification({
-        open: true,
-        message: "Start date/time cannot be in the past",
-        severity: "error",
-      });
+    if (!isExtension && selectedDate < now) {
+      showNotification("Start date/time cannot be in the past", "error");
       return;
     }
 
     setStartDateTime(selectedDateTime);
 
-    // Reset end time if it's before the new start time
     if (endDateTime && new Date(endDateTime) <= selectedDate) {
       setEndDateTime("");
     }
@@ -113,11 +124,7 @@ const CarDetailPage = () => {
 
   const handleEndDateTimeChange = (e) => {
     if (!isLoggedIn) {
-      setNotification({
-        open: true,
-        message: "Please login to select dates",
-        severity: "error",
-      });
+      showNotification("Please login to select dates", "error");
       return;
     }
 
@@ -126,36 +133,50 @@ const CarDetailPage = () => {
     const startDate = new Date(startDateTime);
 
     if (!startDateTime) {
-      setNotification({
-        open: true,
-        message: "Please select start date/time first",
-        severity: "error",
-      });
+      showNotification("Please select start date/time first", "error");
       return;
     }
 
-    // Check if end time is at least 1 hour after start time
+    if (isExtension) {
+      // For extensions, must be after original end time
+      const originalEndDate = new Date(originalEndDateTime);
+      if (selectedDate <= originalEndDate) {
+        showNotification("Extension must be after the current rental end time", "error");
+        return;
+      }
+    }
+
     if ((selectedDate - startDate) < 60 * 60 * 1000) {
-      setNotification({
-        open: true,
-        message: "Minimum booking duration is 1 hour",
-        severity: "error",
-      });
+      showNotification("Minimum booking duration is 1 hour", "error");
       return;
     }
 
     setEndDateTime(selectedDateTime);
   };
 
-  // Helper function to format minimum datetime for input
+  const showNotification = (message, severity) => {
+    setNotification({
+      open: true,
+      message,
+      severity
+    });
+  };
+
+  const handleCloseNotification = () => {
+    setNotification(prev => ({ ...prev, open: false }));
+  };
+
+  const handleLoginRedirect = () => navigate("/login");
+
   const getMinDateTime = () => {
+    if (isExtension && originalEndDateTime) {
+      return new Date(originalEndDateTime).toISOString().slice(0, 16);
+    }
     const now = new Date();
-    // Add 1 minute buffer to prevent selecting current minute that might become past
     now.setMinutes(now.getMinutes() + 1);
     return now.toISOString().slice(0, 16);
   };
 
-  // Helper function to format minimum end datetime (1 hour after start)
   const getMinEndDateTime = () => {
     if (!startDateTime) return "";
     const startDate = new Date(startDateTime);
@@ -163,91 +184,93 @@ const CarDetailPage = () => {
     return startDate.toISOString().slice(0, 16);
   };
 
+  const handleTermsChange = (e) => setTermsAccepted(e.target.checked);
+  const openTermsModal = () => setShowTermsModal(true);
+  const closeTermsModal = () => setShowTermsModal(false);
+
   const handleBooking = async () => {
     if (!isLoggedIn) {
-      setNotification({
-        open: true,
-        message: "Please login to book this vehicle",
-        severity: "error",
-      });
+      showNotification("Please login to book this vehicle", "error");
       navigate("/login");
       return;
     }
 
-    if (vehicle.available <= 0) {
-      setNotification({
-        open: true,
-        message: "Sorry, this vehicle is not available for booking",
-        severity: "error",
-      });
+    if (vehicle.available <= 0 && !isExtension) {
+      showNotification("Sorry, this vehicle is not available", "error");
       return;
     }
 
     if (!startDateTime || !endDateTime) {
-      setNotification({
-        open: true,
-        message: "Please select both start and end date/time",
-        severity: "error",
-      });
+      showNotification("Please select both start and end date/time", "error");
       return;
     }
 
     if (!timeDifference.isValid) {
-      setNotification({
-        open: true,
-        message: "Minimum booking duration is 60 minutes",
-        severity: "error",
-      });
+      showNotification(isExtension 
+        ? "Extension must be at least 1 hour after current rental end time" 
+        : "Minimum booking duration is 60 minutes", "error");
       return;
     }
 
-    const vehicleData = {
-      vehicleId: carId,
-      startDateTime: startDateTime,
-      endDateTime: endDateTime,
-      amount: totalPrice
+    if (!termsAccepted) {
+      showNotification("Please accept the terms and conditions", "error");
+      return;
     }
 
     try {
+      const formatDateTime = (dateTime) => {
+        const date = new Date(dateTime);
+        const pad = num => num.toString().padStart(2, '0');
+        return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:00`;
+      };
+
+      const endpoint = isExtension 
+        ? "http://localhost:4000/api/rentals/extend" 
+        : "http://localhost:4000/api/payment";
+
+      const payload = isExtension
+        ? {
+            rentalId: localStorage.getItem("rentalId"),
+            newEndDateTime: formatDateTime(endDateTime),
+            additionalAmount: totalPrice
+          }
+        : {
+            vehicleId: carId,
+            startDateTime: formatDateTime(startDateTime),
+            endDateTime: formatDateTime(endDateTime),
+            amount: totalPrice
+          };
+
       const response = await axios.post(
-        "http://localhost:4000/api/payment",
-        vehicleData,
+        endpoint,
+        payload,
         {
           headers: {
             "Content-Type": "application/json",
-            Authorization: "Bearer " + localStorage.getItem("token")
+            Authorization: `Bearer ${localStorage.getItem("token")}`
           },
         }
       );
 
-      setNotification({
-        open: true,
-        message: "Booking successful! Redirecting to payment...",
-        severity: "success",
-      });
-
-      localStorage.setItem("rentalId", response.data.rentalId);
-      localStorage.setItem("amount", totalPrice)
+      showNotification(
+        isExtension 
+          ? "Extension request successful! Redirecting to payment..." 
+          : "Booking successful! Redirecting to payment...", 
+        "success"
+      );
+      
+      if (!isExtension) {
+        localStorage.setItem("rentalId", response.data.rentalId);
+      }
+      localStorage.setItem("amount", totalPrice);
       window.location.href = response.data.payment_url;
     } catch (error) {
-      console.error("Error during payment:", error);
-      setNotification({
-        open: true,
-        message: "Failed to process payment. Please try again.",
-        severity: "error",
-      });
+      console.error("Booking error:", error);
+      showNotification(
+        error.response?.data?.error || "Failed to process booking",
+        "error"
+      );
     }
-  };
-
-  const handleCloseNotification = () => {
-    setNotification({
-      ...notification,
-      open: false,
-    });
-  };
-
-  const handleLoginRedirect = () => {
-    navigate("/login");
   };
 
   if (loading) {
@@ -269,12 +292,11 @@ const CarDetailPage = () => {
     );
   }
 
-  const isVehicleAvailable = vehicle.available > 0;
-  const isBookingDisabled = !timeDifference.isValid || !isVehicleAvailable || !isLoggedIn;
+  const isVehicleAvailable = vehicle?.available > 0 || isExtension;
+  const isBookingDisabled = !timeDifference.isValid || (!isExtension && !isVehicleAvailable) || !isLoggedIn || !termsAccepted;
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
-      {/* Navigation */}
       <div className="flex items-center mb-6">
         <button 
           onClick={() => navigate(-1)}
@@ -284,20 +306,33 @@ const CarDetailPage = () => {
         </button>
       </div>
 
-      {/* Main Content */}
+      {isExtension && (
+        <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-blue-700">
+                You are requesting an extension for your current rental. The extension must be at least 1 hour and must be after your current rental end time.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {/* Left Column - Vehicle Details */}
         <div className="md:col-span-2">
-          {/* Vehicle Image */}
           <div className="rounded-xl overflow-hidden mb-6 shadow-lg">
             <img
-              src={`http://localhost:4000/uploads/${vehicle.imageUrl.split("\\")[1]}`}
+              src={`http://localhost:4000/uploads/${vehicle?.imageUrl?.split("\\")[1]}`}
               alt={vehicle?.vehicleName}
               className="w-full h-[450px] object-cover"
             />
           </div>
 
-          {/* Vehicle Information */}
           <div className="bg-white rounded-xl shadow-lg mb-6">
             <div className="p-6">
               <div className="flex justify-between items-start">
@@ -313,9 +348,11 @@ const CarDetailPage = () => {
                       ? "bg-green-100 text-green-800" 
                       : "bg-red-100 text-red-800"
                   }`}>
-                    {isVehicleAvailable 
-                      ? `Available: ${vehicle.available}` 
-                      : "Not available"}
+                    {isExtension 
+                      ? "Extension Request" 
+                      : isVehicleAvailable 
+                        ? `Available: ${vehicle?.available}` 
+                        : "Not available"}
                   </span>
                 </div>
               </div>
@@ -326,7 +363,6 @@ const CarDetailPage = () => {
 
               <div className="border-t border-gray-200 my-4"></div>
 
-              {/* Vehicle Features */}
               <h3 className="text-xl font-bold mb-4">Vehicle Features</h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                 <div>
@@ -346,10 +382,11 @@ const CarDetailPage = () => {
           </div>
         </div>
 
-        {/* Right Column - Booking Details */}
         <div className="md:col-span-1">
           <div className="bg-white rounded-xl p-6 shadow-lg sticky top-5">
-            <h2 className="text-2xl font-bold mb-4">Booking Details</h2>
+            <h2 className="text-2xl font-bold mb-4">
+              {isExtension ? "Extension Details" : "Booking Details"}
+            </h2>
 
             {!isLoggedIn && (
               <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
@@ -374,54 +411,69 @@ const CarDetailPage = () => {
                   ? "bg-green-100 text-green-800" 
                   : "bg-red-100 text-red-800"
               }`}>
-                {isVehicleAvailable 
-                  ? `Available: ${vehicle.available}` 
-                  : "Not available"}
+                {isExtension 
+                  ? "Extension Request" 
+                  : isVehicleAvailable 
+                    ? `Available: ${vehicle?.available}` 
+                    : "Not available"}
               </span>
               <p className="text-3xl font-bold text-blue-600">
-                Rs {vehicle?.pricePerHour.toLocaleString()}
+                Rs {vehicle?.pricePerHour?.toLocaleString()}
               </p>
               <p className="text-sm text-gray-500">per hour</p>
             </div>
 
             <div className="border-t border-gray-200 my-4"></div>
 
-            {/* Date and Time Selection */}
-            <h3 className="text-lg font-bold mb-4">Trip Dates and Times</h3>
+            <h3 className="text-lg font-bold mb-4">
+              {isExtension ? "Extension Dates and Times" : "Trip Dates and Times"}
+            </h3>
             <div className="space-y-4 mb-6">
+              {isExtension && originalEndDateTime && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Current Rental End Time
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={originalEndDateTime}
+                    disabled
+                    className="w-full p-3 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
+                  />
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Start Date & Time
+                  {isExtension ? "New End Date & Time" : "Start Date & Time"}
                 </label>
                 <input
                   type="datetime-local"
                   value={startDateTime}
                   onChange={handleStartDateTimeChange}
                   min={getMinDateTime()}
-                  disabled={!isVehicleAvailable || !isLoggedIn}
+                  disabled={(!isVehicleAvailable && !isExtension) || !isLoggedIn}
                   className={`w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 ${
-                    !isVehicleAvailable || !isLoggedIn ? "bg-gray-100 cursor-not-allowed" : ""
+                    (!isVehicleAvailable && !isExtension) || !isLoggedIn ? "bg-gray-100 cursor-not-allowed" : ""
                   }`}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  End Date & Time
+                  {isExtension ? "Extended End Date & Time" : "End Date & Time"}
                 </label>
                 <input
                   type="datetime-local"
                   value={endDateTime}
                   onChange={handleEndDateTimeChange}
                   min={getMinEndDateTime()}
-                  disabled={!startDateTime || !isVehicleAvailable || !isLoggedIn}
+                  disabled={!startDateTime || (!isVehicleAvailable && !isExtension) || !isLoggedIn}
                   className={`w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 ${
-                    !startDateTime || !isVehicleAvailable || !isLoggedIn ? "bg-gray-100 cursor-not-allowed" : ""
+                    !startDateTime || (!isVehicleAvailable && !isExtension) || !isLoggedIn ? "bg-gray-100 cursor-not-allowed" : ""
                   }`}
                 />
               </div>
             </div>
 
-            {/* Time Difference */}
             <div className="bg-gray-50 p-4 rounded-lg mb-6">
               <h3 className="text-lg font-bold mb-2">Rental Duration</h3>
               {startDateTime && endDateTime ? (
@@ -432,7 +484,9 @@ const CarDetailPage = () => {
                   </p>
                   {!timeDifference.isValid && (
                     <p className="text-red-500 text-sm mt-1">
-                      Minimum booking duration is 60 minutes
+                      {isExtension 
+                        ? "Extension must be at least 1 hour after current rental end time" 
+                        : "Minimum booking duration is 60 minutes"}
                     </p>
                   )}
                 </>
@@ -441,23 +495,50 @@ const CarDetailPage = () => {
               )}
             </div>
 
-            {/* Price Summary */}
             <div className="bg-gray-50 p-4 rounded-lg mb-6">
               <h3 className="text-lg font-bold mb-2">Price Summary</h3>
               <div className="flex justify-between mb-2">
                 <p className="text-sm">
-                  Rs {vehicle?.pricePerHour.toLocaleString()} × {timeDifference.totalHours.toFixed(2)} hours
+                  Rs {vehicle?.pricePerHour?.toLocaleString()} × {timeDifference.totalHours.toFixed(2)} hours
                 </p>
                 <p className="text-sm">Rs {totalPrice.toFixed(2)}</p>
               </div>
               <div className="border-t border-gray-200 my-2"></div>
               <div className="flex justify-between">
-                <p className="font-bold">Total</p>
+                <p className="font-bold">{isExtension ? "Additional Amount" : "Total"}</p>
                 <p className="font-bold">Rs {totalPrice.toFixed(2)}</p>
               </div>
             </div>
 
-            {/* Booking Button */}
+            {isLoggedIn && (isVehicleAvailable || isExtension) && startDateTime && endDateTime && timeDifference.isValid && (
+              <div className="mb-6">
+                <div className="flex items-start">
+                  <div className="flex items-center h-5">
+                    <input
+                      id="terms"
+                      name="terms"
+                      type="checkbox"
+                      checked={termsAccepted}
+                      onChange={handleTermsChange}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                  </div>
+                  <div className="ml-3 text-sm">
+                    <label htmlFor="terms" className="font-medium text-gray-700">
+                      I accept the{" "}
+                      <button
+                        type="button"
+                        onClick={openTermsModal}
+                        className="text-blue-600 hover:text-blue-500 underline"
+                      >
+                        Terms and Conditions
+                      </button>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <button
               onClick={handleBooking}
               disabled={isBookingDisabled}
@@ -467,13 +548,68 @@ const CarDetailPage = () => {
                   : "bg-blue-600 hover:bg-blue-700"
               }`}
             >
-              {!isLoggedIn ? "Login to Book" : isVehicleAvailable ? "Book Now" : "Not Available"}
+              {!isLoggedIn 
+                ? "Login to Book" 
+                : !isVehicleAvailable && !isExtension
+                  ? "Not Available" 
+                  : !termsAccepted && startDateTime && endDateTime && timeDifference.isValid
+                    ? "Accept Terms to Book"
+                    : isExtension
+                      ? "Request Extension"
+                      : "Book Now"}
             </button>
           </div>
         </div>
       </div>
 
-      {/* Notification */}
+      {showTermsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
+          <div className="bg-white rounded-lg w-full max-w-3xl max-h-[90vh] overflow-hidden">
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+              <h2 className="text-2xl font-bold mb-4">Terms and Conditions</h2>
+              <div className="prose max-w-none">
+                <h3>1. Rental Agreement</h3>
+                <p>
+                  This agreement is made between the vehicle rental service provider and the renter. By accepting these terms, you agree to abide by all terms and conditions outlined in this document.
+                </p>
+                <h3>2. Rental Period</h3>
+                <p>
+                  The rental period begins at the specified start date/time and ends at the specified end date/time. Extensions must be requested and approved in advance.
+                </p>
+                <h3>3. Payment Terms</h3>
+                <p>
+                  Full payment is required at the time of booking. Prices are calculated based on the hourly rate multiplied by the rental duration.
+                </p>
+                <h3>4. Cancellation Policy</h3>
+                <p>
+                  Cancellations made more than 24 hours before the rental start time will receive a full refund. Cancellations made within 24 hours are non-refundable.
+                </p>
+                <h3>5. Vehicle Use</h3>
+                <p>
+                  The vehicle must be used in accordance with all traffic laws and only by the authorized renter. Smoking and pets are not allowed in the vehicle.
+                </p>
+                <h3>6. Damage and Insurance</h3>
+                <p>
+                  The renter is responsible for any damage to the vehicle during the rental period. Insurance coverage options are available at checkout.
+                </p>
+                <h3>7. Extension Policy</h3>
+                <p>
+                  Extensions must be requested before the current rental period ends. The extension must be for a minimum of 1 hour and cannot overlap with the current rental period. Additional charges will apply for the extended duration.
+                </p>
+              </div>
+            </div>
+            <div className="bg-gray-50 px-6 py-4 flex justify-end border-t border-gray-200">
+              <button
+                onClick={closeTermsModal}
+                className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-300"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {notification.open && (
         <div className="fixed bottom-4 right-4 z-50">
           <div

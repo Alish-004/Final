@@ -24,6 +24,10 @@ import ExtensionRequests from "../pages/admin/ExtensionRequests";
 import ExtensionPaymentVerify from "../pages/ExtensionPaymentVerify";
 import AdminPackagesPage from "../pages/admin/AdminPackages";
 import Rentals from "../pages/admin/Rentals";
+import OffRoadingNepal from "../pages/OffRoadingNepal";
+import NepalRoadTrips from "../pages/RoadTrips";
+import CarSelectionGuide from "../pages/whytochoose";
+import JourneyWheelsPage from "../pages/firsttrip";
 
 function AppRoutes() {
   const [userinfo] = useRecoilState(userSelector);
@@ -43,8 +47,13 @@ function AppRoutes() {
             <Route path="/aboutus" element={<AboutUs />} />
             <Route path="/contactus" element={<ContactUs />} />
             <Route path="/blog" element={<BlogPage />} />
+            <Route path="/road-trips" element={<NepalRoadTrips></NepalRoadTrips>}></Route>
+            <Route path="/choose-car" element={<CarSelectionGuide></CarSelectionGuide>
+            }></Route>
+            <Route path="/renting-tips"element= {<JourneyWheelsPage></JourneyWheelsPage>}></Route>
             <Route path="/profile" element={<UserProfile />} />
             <Route path="/cardetails/:carId" element={<CarDetailPage />} />
+            <Route path="/information" element={<OffRoadingNepal></OffRoadingNepal>}></Route>
             <Route path="/extension/payment/verify" element={<ExtensionPaymentVerify></ExtensionPaymentVerify>}></Route>
             <Route path="/payment/verify" element={<VerifyPayment></VerifyPayment>}></Route>
             <Route path="*" element={<ErrorPage />} />
@@ -55,7 +64,7 @@ function AppRoutes() {
         <>
           <Routes>
             <Route path="/admin" element={<AdminLayout />}>
-              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="" element={<Dashboard />} />
               <Route path="customers" element={<Customers />} />
               <Route path="vehicles" element={<Vehicles />} />
               <Route path="payment-history" element={<PaymentHistory />} />

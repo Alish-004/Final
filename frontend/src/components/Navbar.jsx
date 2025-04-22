@@ -77,6 +77,20 @@ function Navbar() {
             >
               Contact Us
             </NavLink>
+
+
+            <NavLink
+              to="/information"
+              className={({ isActive }) => 
+                `text-lg font-bold no-underline transition-all duration-300 ${
+                  isActive 
+                    ? "text-blue-800 border-b-2 border-blue-800" 
+                    : "text-black hover:text-blue-800"
+                }`
+              }
+            >
+              Information
+            </NavLink>
           </div>
 
           {/* Buttons (Login and Sign Up) */}
