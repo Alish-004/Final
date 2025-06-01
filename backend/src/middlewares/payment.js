@@ -42,9 +42,8 @@ export default async function payment(req, res) {
         purchase_order_id: "Order01", // Replace with your actual order ID
         purchase_order_name: "test", // Replace with your actual order name
           customer_info: {
-          name: "Ram Bahadur", // Replace with actual customer name
-          email: "test@khalti.com", // Replace with actual customer email
-          phone: "9800000001", // Replace with actual customer phone
+          name: `${user.firstName} ${user.lastName}`, // Replace with actual customer name
+          email: `${user.email}`, // Replace with actual customer email
         },
       }),
     };

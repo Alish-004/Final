@@ -72,14 +72,14 @@ export async function login(req, res) {
     });
 
     if (!user) {
-      return res.status(401).json({ token: null, message: 'Invalid credentials 1' });
+      return res.status(200).json({ token: null, message: 'Invalid credentials 1' });
     }
 
     console.log(user.password)
     const isPasswordValid = await verifyPassword(password, user.password);
 
     if (!isPasswordValid) {
-      return res.status(401).json({ token: null, message: 'Invalid credentials 2' });
+      return res.status(200).json({ token: null, message: 'Invalid credentials 2' });
     }
     const token = jwt.sign({ email: user.email }, SECRET_KEY);
 
@@ -120,5 +120,7 @@ export async function me(req, res) {
     res.status(403).json({ message: 'Invalid token' });
   }
 }
+
+
 
 export default prisma;
